@@ -50,7 +50,7 @@ def validate_answer(
     payload,
     answers_by_ref: dict[str, Any] | None = None,
 ) -> tuple[bool, str | None]:
-    """Valide une réponse selon le type, les options, les unités et les dépendances."""
+    #Valide une réponse selon le type, les options, les unités et les dépendances
     answers_by_ref = answers_by_ref or {}
     rules = question.validation_rules_json or {}
 
@@ -139,35 +139,4 @@ def validate_answer(
             return False, "Le texte ne correspond pas au format attendu."
 
     # 6. Validation des dépendances entre questions
-    dependency = question.dependency_json or {}
-    if dependency:
-        dependency_ref = dependency.get("question_ref")
-        expected_value = dependency.get("value")
-        operator = dependency.get("operator", "eq")
-
-        if dependency_ref:
-            controlling_answer = answers_by_ref.get(dependency_ref)
-
-            if operator == "not_exists":
-                # Le cas "not_exists" est valide même si aucune réponse n'existe.
-                if controlling_answer is not None:
-                    actual_value = _get_answer_value(controlling_answer)
-                    if not _evaluate_dependency(actual_value, expected_value, operator):
-                        return False, (
-                            "La dépendance de cette question n'est pas satisfaite. "
-                            "Vérifiez les réponses des questions liées."
-                        )
-            else:
-                if controlling_answer is None:
-                    return False, (
-                        f"La dépendance sur la question '{dependency_ref}' doit être renseignée avant de répondre."
-                    )
-
-                actual_value = _get_answer_value(controlling_answer)
-                if not _evaluate_dependency(actual_value, expected_value, operator):
-                    return False, (
-                        "La dépendance de cette question n'est pas satisfaite. "
-                        "Vérifiez les réponses des questions liées."
-                    )
-
-    return True, None
+    
