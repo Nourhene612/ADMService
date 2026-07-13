@@ -1,13 +1,10 @@
 from datetime import datetime
-from typing import Optional, Any
-from app.schemas.answer import AdmAssessmentAnswerRead
-from pydantic import BaseModel, ConfigDict, Field
-
-
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.schemas.answer import AdmAssessmentAnswerRead
 
 
 # ---------------------------------------------------------------------------
@@ -202,6 +199,10 @@ class AdmAssessmentQuestionRead(AdmAssessmentQuestionBase):
 class AdmAssessmentQuestionsBySection(BaseModel):
     section_key: str
     subsections: dict[str, list[AdmAssessmentQuestionRead]]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class QuestionForFormRead(AdmAssessmentQuestionRead):
     current_answer: Optional[AdmAssessmentAnswerRead] = None
     is_visible: bool = True

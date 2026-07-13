@@ -1,0 +1,149 @@
+/* question-logic.css - Conditional logic card */
+:host {
+  display: block;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+  width: 100%;
+}
+
+.card-header-group {
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.card-subtitle {
+  font-size: 0.88rem;
+  color: #475569;
+  margin-top: 4px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.segmented-control {
+  display: flex;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  padding: 2px;
+}
+
+.segmented-item {
+  flex: 1;
+  text-align: center;
+}
+
+.segmented-item input[type="radio"] {
+  display: none;
+}
+
+.segmented-item label {
+  display: block;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.segmented-item input[type="radio"]:checked + label {
+  background-color: #eef6ff;
+  color: #0076f5;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(0, 118, 245, 0.2);
+}
+
+.rule-row {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.rule-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-caption {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+  gap: 8px;
+}
+
+.warning-text {
+  font-size: 0.85rem;
+}
+
+.warning-box a {
+  color: #0076f5;
+  font-weight: 600;
+  text-decoration: none;
+} 
+
+.segmented-control {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #fff;
+  padding: 2px;
+}
+
+.segmented-item {
+  flex: 1;
+  text-align: center;
+} 
+
+.segmented-item input[type="radio"] {
+  display: none;
+}
+
+.segmented-item label {
+  display: block;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: calc(var(--radius-md) - 2px);
+  transition: all 0.2s;
+}
+
+.segmented-item input[type="radio"]:checked + label {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(0, 118, 245, 0.2);
+}

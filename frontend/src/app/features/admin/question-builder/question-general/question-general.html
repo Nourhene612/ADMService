@@ -1,0 +1,304 @@
+<div class="card card-compact" [formGroup]="form">
+
+
+    <div class="card-header-group">
+
+        <div class="card-title">
+            Question Details
+        </div>
+
+        <div class="card-subtitle">
+            Core identity and placement of the question.
+        </div>
+
+    </div>
+
+
+
+    <!-- Question ref -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Question reference
+            <span class="required">*</span>
+        </label>
+
+
+        <input
+    type="text"
+    class="input-text"
+    [class.input-error]="form.get('question_ref')?.invalid && form.get('question_ref')?.touched"
+    formControlName="question_ref">
+  <span class="error-message" *ngIf="form.get('question_ref')?.invalid && form.get('question_ref')?.touched">
+    Question reference is required.
+  </span>
+    </div>
+
+
+
+    <!-- Section key -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Step key
+        </label>
+
+
+        <input
+            type="text"
+            class="input-text"
+            placeholder="e.g. org"
+            formControlName="section_key">
+
+    </div>
+
+
+
+
+    <!-- Subsection key -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Group key
+        </label>
+
+
+        <input
+            type="text"
+            class="input-text"
+            placeholder="e.g. salary"
+            formControlName="subsection_key">
+
+    </div>
+
+
+
+
+    <!-- Question text -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Question text
+            <span class="required">*</span>
+        </label>
+
+
+        <input
+    type="text"
+    class="input-text"
+    [class.input-error]="form.get('question_text')?.invalid && form.get('question_text')?.touched"
+    formControlName="question_text">
+  <span class="error-message" *ngIf="form.get('question_text')?.invalid && form.get('question_text')?.touched">
+    Question text is required.
+  </span>
+
+    </div>
+
+
+
+
+
+    <!-- Answer type -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Answer type
+            <span class="required">*</span>
+        </label>
+
+
+        <select
+            class="select-custom"
+            formControlName="answer_type">
+
+
+            <option
+                *ngFor="let type of answerTypes"
+                [value]="type.value">
+
+                {{type.label}}
+
+            </option>
+
+
+        </select>
+
+
+    </div>
+
+
+
+
+
+    <!-- Placeholder -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Placeholder
+        </label>
+
+
+        <input
+            type="text"
+            class="input-text"
+            placeholder="Add custom placeholder..."
+            formControlName="placeholder">
+
+    </div>
+
+
+
+
+
+    <!-- Default value -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Default value
+        </label>
+
+
+        <input
+            type="text"
+            class="input-text"
+            placeholder="Add default value..."
+            formControlName="default_value">
+
+    </div>
+
+
+
+
+
+    <!-- Description -->
+
+    <div class="form-group">
+
+
+        <label class="form-label">
+            Description
+            <span class="optional">
+                (optional)
+            </span>
+        </label>
+
+
+        <textarea
+            rows="1"
+            class="textarea-custom"
+            placeholder="Add context or guidance..."
+            formControlName="description"></textarea>
+
+
+    </div>
+
+
+
+
+
+
+    <!-- Order -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Order
+            <span class="required">*</span>
+        </label>
+
+
+        <input
+    type="number"
+    class="input-text"
+    [class.input-error]="form.get('order')?.invalid && form.get('order')?.touched"
+    formControlName="order">
+  <span class="error-message" *ngIf="form.get('order')?.errors?.['required'] && form.get('order')?.touched">
+    Order is required.
+  </span>
+  <span class="error-message" *ngIf="form.get('order')?.errors?.['min'] && form.get('order')?.touched">
+    Order must be 0 or greater.
+  </span>
+
+
+    </div>
+
+
+
+
+
+    <!-- Weight -->
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Weight
+        </label>
+
+
+        <input
+            type="number"
+            step="0.1"
+            class="input-text"
+            placeholder="0"
+            formControlName="weight">
+
+
+    </div>
+
+
+
+
+
+
+
+    <!-- Active / Required -->
+
+    <div class="form-group">
+
+
+        <div class="checkbox-row">
+
+
+            <label class="checkbox-inline">
+
+
+                <input
+                    type="checkbox"
+                    formControlName="active">
+
+
+                Active
+
+            </label>
+
+
+
+
+
+            <label class="checkbox-inline">
+
+
+                <input
+                    type="checkbox"
+                    formControlName="required">
+
+
+                Required
+
+            </label>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>

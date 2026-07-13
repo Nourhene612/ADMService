@@ -1,0 +1,164 @@
+<div class="card" [formGroup]="form">
+
+
+<div class="card-header-group">
+
+  <div class="card-title">
+    Conditional logic
+  </div>
+
+  <div class="card-subtitle">
+    Choose the mechanism that matches form layout behavior.
+  </div>
+
+</div>
+
+
+
+
+<!-- Mode selection -->
+
+<div class="form-group">
+
+  <div class="segmented-control">
+
+    <label class="segmented-item">
+
+      <input
+        type="radio"
+        value="visibility"
+        formControlName="mode">
+
+      Visibility
+
+    </label>
+
+    
+
+  </div>
+
+</div>
+
+
+
+
+<p class="mode-description">
+  {{ modeDescription }}
+</p>
+
+
+
+
+<!-- Rule -->
+
+<div class="rule-row">
+
+
+  <div class="rule-field">
+
+    <span class="field-caption">
+      Question reference
+    </span>
+
+
+    <select
+      class="select-custom"
+      formControlName="condition_question_uid">
+
+      <option value="">Select</option>
+
+      <option
+        *ngFor="let q of questions"
+        [value]="q.question_uid">
+
+        {{ q.question_ref }}
+
+      </option>
+
+    </select>
+
+  </div>
+
+
+
+
+
+  <div class="rule-field">
+
+    <span class="field-caption">
+      Operator
+    </span>
+
+
+    <select
+      class="select-custom"
+      formControlName="condition_operator">
+
+      <option
+        *ngFor="let op of operators"
+        [value]="op.value">
+
+        {{ op.label }}
+
+      </option>
+
+    </select>
+
+  </div>
+
+
+
+
+
+  <div class="rule-field">
+
+    <span class="field-caption">
+      Value
+    </span>
+
+
+    <input
+      type="text"
+      class="input-text"
+      formControlName="condition_value">
+
+  </div>
+
+
+</div>
+
+
+
+
+<!-- Warning -->
+
+<div
+  class="warning-box"
+  *ngIf="showWarning">
+
+
+  <span class="warning-icon">
+    ⚠
+  </span>
+
+
+  <span class="warning-text">
+
+    {{ warningMessage }}
+
+    <br>
+
+    <a
+      href="#"
+      (click)="fixOrder(); $event.preventDefault()">
+
+      Fix order automatically
+
+    </a>
+
+  </span>
+
+</div>
+
+
+</div>

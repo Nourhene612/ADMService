@@ -1,0 +1,26 @@
+﻿<div class="container">
+  <form [formGroup]="questionForm" (ngSubmit)="save()">
+
+    <!-- EN-TÊTE -->
+    
+    <!-- CONFIGURATION PRINCIPALE -->
+    <div class="main-grid">
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <app-question-general [form]="questionForm"></app-question-general>
+      </div>
+    </div>
+
+    <!-- ACTIONS FOOTER -->
+    <div class="footer-actions">
+      <div class="left-buttons">
+        <button class="btn btn-secondary" type="button" (click)="cancel()" [disabled]="isSubmitting">
+          Cancel
+        </button>
+        <button class="btn btn-primary" type="submit" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Save changes' : 'Save question') }}
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>

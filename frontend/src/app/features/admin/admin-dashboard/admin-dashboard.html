@@ -1,0 +1,168 @@
+<div class="dashboard-container">
+
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">Assessment Builder</h1>
+      <p class="dashboard-subtitle">Manage assessment steps, groups and questions.</p>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon icon-purple">
+        <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#8a8aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m12 3-10 5 10 5 10-5z"/>
+          <path d="m2 17 10 5 10-5"/>
+          <path d="m2 12 10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="stat-label">Total Steps</div>
+        <div class="stat-value">{{ totalSteps }}</div>
+        <div class="stat-caption">All assessment steps</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon icon-green">
+        <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+          <path d="M15 19h4v-4"></path>
+          <path d="M19 19l-4-4"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="stat-label">Total Questions</div>
+        <div class="stat-value">{{ totalQuestions }}</div>
+        <div class="stat-caption">Across all steps</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon icon-orange"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+    <path d="M12 2L14.9 8.6L22 9.3L16.5 14L18.2 21L12 17.3L5.8 21L7.5 14L2 9.3L9.1 8.6L12 2Z"/>
+  </svg>
+</div>
+      <div>
+        <div class="stat-label">Required Questions</div>
+        <div class="stat-value">{{ requiredQuestions }}</div>
+        <div class="stat-caption">Mandatory questions</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-layout">
+
+    <!-- Steps list -->
+    <div class="steps-panel">
+      <div class="panel-header">
+        <span class="panel-title">Steps</span>
+        <button class="btn-add-step" (click)="openAddStep()" title="Add step">+ Add Step</button>
+      </div>
+
+      <div
+        *ngFor="let step of stepsMeta"
+        class="step-item"
+        [class.active]="step.sectionKey === currentSection"
+        (click)="selectSection(step.sectionKey)">
+        <div class="step-header">
+         
+          <div class="step-name">{{ step.sectionKey }}</div>
+        </div>
+        <div class="step-meta">
+          {{ step.groupCount }} group{{ step.groupCount > 1 ? 's' : '' }} •
+          {{ step.questionCount }} question{{ step.questionCount > 1 ? 's' : '' }}
+        </div>
+        <div class="step-status">
+          <span class="status-dot" [class.inactive]="!step.hasActiveQuestion"></span>
+          <span class="step-status-text">{{ step.hasActiveQuestion ? 'Active' : 'Inactive' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step detail -->
+    <div class="detail-panel">
+      <div class="detail-header">
+        <div class="detail-heading">
+          <div class="detail-title">Step: {{ currentSection || 'No step selected' }}</div>
+          <div class="detail-description" *ngIf="currentStepDescription">
+            {{ currentStepDescription }}
+          </div>
+        </div>
+        <button class="btn-add-group-top" (click)="openAddGroup()" [disabled]="!currentSection">+ Add Group</button>
+      </div>
+
+      <div *ngFor="let group of currentSectionGroups" class="group-card" [class.group-open]="group.expanded">
+        <div class="group-header" (click)="toggleGroup(group.subsectionKey)">
+          <div class="group-header-left">
+            <span class="chevron" [class.expanded]="group.expanded">❯</span>
+            <span class="group-title">Group: {{ group.subsectionKey }}</span>
+          </div>
+          <span class="group-count">{{ group.questions.length }} question{{ group.questions.length > 1 ? 's' : '' }}</span>
+        </div>
+
+        <ng-container *ngIf="group.expanded">
+          <table class="questions-table" *ngIf="group.questions.length">
+            <thead>
+              <tr>
+                <th>Question Label</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let q of group.questions">
+                <td>{{ q.question_text }}</td>
+                <td>{{ q.answer_type }}</td>
+                <td><span class="check-badge" *ngIf="q.is_required">✓</span></td>
+                <td>
+                  <span class="status-badge" [class.inactive]="!q.is_active">
+                    {{ q.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                  <button class="icon-btn" title="Edit" (click)="editQuestion(q)">✎</button>
+                  
+                  <button class="icon-btn icon-danger" title="Delete" (click)="deleteQuestion(q)">🗑</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <button class="btn-add-question" (click)="openAddQuestion(group.subsectionKey)">
+            + Add Question
+          </button>
+        </ng-container>
+      </div>
+
+      <div *ngIf="currentSection && currentSectionGroups.length === 0" class="empty-state">
+        No groups yet for this step.
+      </div>
+
+      <div *ngIf="!currentSection" class="empty-state">
+        No steps yet. Click "+" next to Steps to create one.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="modal-overlay" *ngIf="showQuestionForm" (click)="closeQuestionForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <app-question-form
+        [prefilledSection]="activeSection"
+        [prefilledSubsection]="activeSubsection"
+        [isNewGroup]="isNewGroup"
+        [editingQuestion]="editingQuestion"
+        (closeRequested)="closeQuestionForm()"
+        (questionSaved)="onQuestionSaved()">
+      </app-question-form>
+    </div>
+  </div>
+
+</div>

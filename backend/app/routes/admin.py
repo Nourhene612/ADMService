@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+import logging
 
 from app.models.database import get_db
 from app.crud import crud_question
@@ -12,6 +13,7 @@ from app.schemas.question import (
     AdmAssessmentQuestionRead,
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin/questions", tags=["Admin Questions"])
 
 
@@ -21,9 +23,20 @@ router = APIRouter(prefix="/admin/questions", tags=["Admin Questions"])
 
 @router.post("", response_model=AdmAssessmentQuestionRead, status_code=status.HTTP_201_CREATED)
 def create_question(payload: AdmAssessmentQuestionCreate, db: Session = Depends(get_db)):
-    if crud_question.get_by_ref(db, payload.question_ref):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ce question_ref existe déjà.")
-    return crud_question.create(db, payload.model_dump())
+    try:
+        logger.info(f"Received create question request: {payload.model_dump()}")
+        
+        if crud_question.get_by_ref(db, payload.question_ref):
+            logger.warning(f"Question with ref {payload.question_ref} already exists")
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ce question_ref existe déjà.")
+        
+        result = crud_question.create(db, payload.model_dump())
+        logger.info(f"Question created successfully: {result.uid}")
+        return result
+    except Exception as e:
+        logger.error(f"Error creating question: {str(e)}")
+        raise
+
 
 
 @router.get("", response_model=list[AdmAssessmentQuestionRead])
