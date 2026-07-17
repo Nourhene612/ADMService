@@ -1,0 +1,49 @@
+.group-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.group-card:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+
+
+.group-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.group-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.group-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.group-card h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-main);
+  
+}

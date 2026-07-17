@@ -6,53 +6,12 @@ from typing import Any
 from app.models.adm_assessment_question import AdmAssessmentQuestion
 
 
-def _get_answer_value(answer: Any) -> Any:
-    for field in (
-        "response_string",
-        "response_number",
-        "response_boolean",
-        "response_list_json",
-        "response_object_json",
-    ):
-        value = getattr(answer, field, None)
-        if value is not None:
-            return value
-    return None
-
-
-def _evaluate_dependency(actual: Any, expected: Any, operator: str) -> bool:
-    """Opérateurs alignés sur ConditionOperator (schéma question.py) :
-    eq, neq, gt, lt, gte, lte, in, exists, not_exists.
-    """
-    if operator == "exists":
-        return actual is not None
-    if operator == "not_exists":
-        return actual is None
-    if operator == "eq":
-        return actual == expected
-    if operator == "neq":
-        return actual != expected
-    if operator == "in":
-        return actual in expected if isinstance(expected, (list, tuple, set)) else False
-    if operator == "gt":
-        return actual is not None and expected is not None and actual > expected
-    if operator == "lt":
-        return actual is not None and expected is not None and actual < expected
-    if operator == "gte":
-        return actual is not None and expected is not None and actual >= expected
-    if operator == "lte":
-        return actual is not None and expected is not None and actual <= expected
-    return False
-
-
 def validate_answer(
     question: AdmAssessmentQuestion,
     payload,
     answers_by_ref: dict[str, Any] | None = None,
 ) -> tuple[bool, str | None]:
-    #Valide une réponse selon le type, les options, les unités et les dépendances
-    answers_by_ref = answers_by_ref or {}
-    rules = question.validation_rules_json or {}
+    """Valide une réponse selon le type, les options, les unités et les règles de format."""
 
     # 1. Champ requis
     if question.is_required:
@@ -68,6 +27,8 @@ def validate_answer(
         )
         if all_empty:
             return False, "Cette question est obligatoire."
+
+    rules = question.validation_rules_json or {}
 
     # 2. Validation du type de réponse attendu
     if question.answer_type == "number":
@@ -138,5 +99,5 @@ def validate_answer(
         if pattern is not None and not re.match(pattern, payload.response_string):
             return False, "Le texte ne correspond pas au format attendu."
 
-    # 6. Validation des dépendances entre questions
-    
+    # Aucune règle n'a échoué → réponse valide
+    return True, None

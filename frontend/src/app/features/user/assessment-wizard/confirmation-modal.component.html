@@ -1,0 +1,11 @@
+<div class="modal-overlay" *ngIf="isOpen$ | async" (click)="closeModal()">
+  <div class="modal-card" [ngClass]="type" (click)="$event.stopPropagation()">
+    <button type="button" class="modal-close" (click)="closeModal()" aria-label="Close">×</button>
+    <div class="modal-icon" *ngIf="type === 'success'">✓</div>
+    <div class="modal-icon warning" *ngIf="type === 'warning'">!</div>
+    <div class="modal-icon info" *ngIf="type === 'info'">i</div>
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+    <button type="button" class="btn-primary modal-action" (click)="closeModal()">OK</button>
+  </div>
+</div>

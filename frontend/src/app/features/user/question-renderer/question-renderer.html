@@ -1,0 +1,101 @@
+<!-- question-renderer.component.html -->
+<div class="question-field" *ngIf="question.is_visible">
+  <label>
+    {{ question.question_text }}
+    <span class="required" *ngIf="question.is_required">*</span>
+  </label>
+  <p class="help-text" *ngIf="question.help_text">{{ question.help_text }}</p>
+
+  <!-- TEXT -->
+  <input
+    *ngIf="question.answer_type === 'text'"
+    type="text"
+    [(ngModel)]="textValue"
+    [placeholder]="question.input_placeholder ?? ''"
+    [disabled]="!question.is_enabled"
+    (ngModelChange)="onTextChange($event)"
+  />
+
+  <!-- TEXTAREA -->
+  <textarea
+    *ngIf="question.answer_type === 'textarea'"
+    [(ngModel)]="textValue"
+    [placeholder]="question.input_placeholder ?? ''"
+    [disabled]="!question.is_enabled"
+    (ngModelChange)="onTextChange($event)"
+  ></textarea>
+
+  <!-- NUMBER -->
+  <input
+    *ngIf="question.answer_type === 'number'"
+    type="number"
+    [(ngModel)]="numberValue"
+    [disabled]="!question.is_enabled"
+    (ngModelChange)="onNumberChange($event)"
+  />
+
+  <!-- SINGLE SELECT / RADIO CARD -->
+  <div class="option-cards" *ngIf="question.answer_type === 'single_select' || question.answer_type === 'radio_card'">
+    <button
+      *ngFor="let option of options"
+      type="button"
+      class="option-card"
+      [class.selected]="selectedOption === option"
+      [disabled]="!question.is_enabled"
+      (click)="onSingleSelectChange(option)"
+    >
+      {{ option }}
+    </button>
+  </div>
+
+  <!-- MULTI SELECT (chips) -->
+  <div class="multi-select" *ngIf="question.answer_type === 'multi_select'">
+    <div class="chips">
+      <span class="chip" *ngFor="let selected of selectedOptions">
+        {{ selected }}
+        <button type="button" (click)="removeChip(selected)">×</button>
+      </span>
+    </div>
+    <select (change)="toggleMultiSelectOption($any($event.target).value)" [disabled]="!question.is_enabled">
+      <option value="" disabled selected>Search and select or type to add</option>
+      <option *ngFor="let option of options" [value]="option">{{ option }}</option>
+    </select>
+  </div>
+
+  <!-- BOOLEAN (radio simple, ex: Low/Medium/High si options fournies, sinon Oui/Non) -->
+  <div class="radio-group" *ngIf="question.answer_type === 'boolean'">
+    <label *ngFor="let option of options">
+      <input
+        type="radio"
+        [name]="question.uid"
+        [checked]="selectedOption === option"
+        (change)="onSingleSelectChange(option)"
+        [disabled]="!question.is_enabled"
+      />
+      {{ option }}
+    </label>
+  </div>
+
+  <!-- CHECKBOX (multiple selection with checkboxes) -->
+  <div class="checkbox-group" *ngIf="question.answer_type === 'checkbox'">
+    <label *ngFor="let option of options" class="checkbox-label">
+      <input
+        type="checkbox"
+        [name]="question.uid"
+        [checked]="selectedOptions.includes(option)"
+        (change)="toggleMultiSelectOption(option)"
+        [disabled]="!question.is_enabled"
+      />
+      {{ option }}
+    </label>
+  </div>
+
+  <!-- DATE -->
+  <input
+    *ngIf="question.answer_type === 'date'"
+    type="date"
+    [(ngModel)]="textValue"
+    [disabled]="!question.is_enabled"
+    (ngModelChange)="onTextChange($event)"
+  />
+</div>

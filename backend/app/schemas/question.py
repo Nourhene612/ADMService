@@ -28,14 +28,7 @@ class AnswerType(str, Enum):
 # 2. answer_options_json -> List[AnswerOption]
 #    Used by SELECT / MULTI_SELECT / RADIO / CHECKBOX
 # ---------------------------------------------------------------------------
-class AnswerOption(BaseModel):
-    value: str
-    label: str
-    display_order: int = 0
-    is_default: bool = False
-    # room for per-option metadata (e.g. icon, color, score) without
-    # reopening the schema every time product wants a tweak
-    metadata: Optional[dict] = None
+
 
 
 # ---------------------------------------------------------------------------
@@ -148,7 +141,7 @@ class AdmAssessmentQuestionBase(BaseModel):
     answer_type: AnswerType
     answer_condition: Optional[str] = None
 
-    answer_options_json: Optional[List[AnswerOption]] = None
+    answer_options_json: Optional[List[str]] = None
     answer_unit_json: Optional[AnswerUnit] = None
     dependency_json: Optional[DependencyConfig] = None
 

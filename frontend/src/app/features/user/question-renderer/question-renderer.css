@@ -1,0 +1,204 @@
+/* QUESTION FIELD */
+.question-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.question-field label {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.required {
+  color: var(--error);
+}
+
+.help-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -4px 0 4px 0;
+  line-height: 1.4;
+}
+
+/* INPUT FIELDS */
+input,
+textarea,
+select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-main);
+  outline: none;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-light);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 118, 245, 0.1);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background: var(--border-light);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* OPTION CARDS (single select, radio card) */
+.option-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.option-card {
+  flex: 0 1 calc(50% - 5px);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  text-align: center;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.option-card:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.option-card.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.option-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* MULTI-SELECT (CHIPS) */
+.multi-select {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.multi-select .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 32px;
+  align-items: center;
+}
+
+.chip {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--primary);
+}
+
+.chip button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.chip button:hover {
+  color: var(--primary-dark);
+}
+
+/* RADIO GROUP */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.radio-group input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--primary);
+  margin: 0;
+}
+
+/* CHECKBOX GROUP */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 400;
+  color: var(--text-main);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--primary);
+  margin: 0;
+}
+
+.checkbox-label:hover {
+  color: var(--primary);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .option-card {
+    flex: 0 1 100%;
+  }
+}

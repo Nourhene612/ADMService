@@ -1,36 +1,47 @@
 /* ==========================================================================
-   1. VARIABLES & CONFIGURATION GENERALE
+   DESIGN SYSTEM - VARIABLES CSS CENTRALISÉES
    ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
-  --primary-color: #0076f5;
-  --primary-hover: #005ec4;
+  /* --- Variables du Wizard --- */
+  --primary: #0076f5;
   --primary-light: #eef6ff;
+  --primary-dark: #0051b3;
+
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
-  
+  --bg-hover: #f1f5f9;
+
   --text-main: #0f172a;
-  --text-muted: #475569;
+  --text-muted: #64748b;
   --text-light: #94a3b8;
-  
-  --border-color: #e2e8f0;
-  --border-focus: #0076f5;
-  --danger-color: #ef4444;
-  --warning-bg: #fffbeb;
-  --warning-border: #fde68a;
-  --warning-text: #92400e;
-  
+
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  --error: #dc2626;
+  --success: #16a34a;
+
+  /* --- Variables de l'Assessment Builder --- */
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success-color: #22c55e;
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+  --border-color: #e5e7eb;
   --radius-lg: 16px;
-  --radius-md: 10px;
-  --radius-sm: 6px;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius-md: 16px;
+  --shadow-soft: 0 4px 12px rgba(15, 23, 42, 0.06), 0 12px 32px rgba(15, 23, 42, 0.08);
+  --shadow-hover: 0 8px 20px rgba(37, 99, 235, 0.12), 0 18px 38px rgba(15, 23, 42, 0.12);
 }
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 html, body {
   font-family: var(--font-sans);
   background-color: var(--bg-main);
@@ -38,12 +49,8 @@ html, body {
   line-height: 1.5;
 }
 
-body {
-  padding: 40px 24px;
-}
-
 /* ==========================================================================
-   2. LAYOUT & GRID SYSTEM
+   LAYOUT & GRID SYSTEM
    ========================================================================== */
 .container {
   max-width: 1200px;
@@ -76,26 +83,14 @@ body {
 }
 
 /* ==========================================================================
-   3. COMPOSANTS DASHBOARD
+   COMPOSANTS RÉUTILISABLES
    ========================================================================== */
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 32px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
-}
-
-.card.card-compact {
-  padding: 20px 24px;
-}
-
-.card-header-group {
-  margin-bottom: 24px;
-}
-
-.card-compact .card-header-group {
-  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
 .card-title {

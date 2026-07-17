@@ -1,0 +1,102 @@
+<!-- assessment-wizard.component.html -->
+
+<!-- On capture "session" ici, en englobant tout le composant -->
+<ng-container *ngIf="session$ | async as session">
+
+  <div class="wizard-container" *ngIf="(loading$ | async) === false; else loadingTpl">
+
+    <!-- HEADER -->
+    <div class="wizard-header">
+      <div class="header-content">
+        <span class="step-badge">
+          <span class="step-badge-dot"></span>
+          STEP {{ ((currentStepIndex$ | async) ?? 0) + 1 }} OF {{ (steps$ | async)?.length ?? 0 }}
+        </span>
+        <h1>Build your ADM baseline</h1>
+        <p class="header-subtitle">
+          Start with scope, delivery context, and assessment boundaries. The clearer this baseline is,
+          the more useful your ADM benchmark and recommendations will be.
+        </p>
+      </div>
+
+      <!-- COMPLETION SCORE À CÔTÉ DU TITRE -->
+      <div class="header-score">
+        <app-completion-score></app-completion-score>
+      </div>
+    </div>
+
+    <!-- WIZARD TABS (STEPS) -->
+    <app-wizard-step-tabs
+      [steps]="(steps$ | async) ?? []"
+      [currentStepIndex]="(currentStepIndex$ | async) ?? 0"
+    ></app-wizard-step-tabs>
+
+    <!-- MAIN CONTENT: GROUPS/CARDS EN PLEINE LARGEUR -->
+    <div class="wizard-content">
+      <div class="wizard-groups-container">
+        <div class="wizard-groups" *ngIf="currentStepGroups$ | async as groups">
+          <app-wizard-group-card
+            *ngFor="let entry of groups | keyvalue"
+            [subsectionKey]="entry.key"
+            [questions]="entry.value"
+          ></app-wizard-group-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR MESSAGE -->
+    <div class="wizard-error" *ngIf="error$ | async as error">
+      <p>⚠️ {{ error }}</p>
+    </div>
+
+    <!-- FOOTER ACTIONS -->
+    <div class="wizard-footer" *ngIf="session.status === 'draft'; else sessionClosedTpl">
+      <div class="wizard-footer-actions wizard-footer-actions-left">
+        <button type="button" class="btn-secondary" (click)="onCancel()">Cancel</button>
+        <button type="button" class="btn-secondary" (click)="onSaveDraft()">Save Draft</button>
+      </div>
+
+      <div class="wizard-footer-actions wizard-footer-actions-right">
+        <button type="button" class="btn-secondary" [disabled]="isFirstStep" (click)="onPrevious()">
+          Previous
+        </button>
+        <button
+      type="button"
+      class="btn-primary"
+      *ngIf="!isLastStep((steps$ | async) ?? [], (currentStepIndex$ | async) ?? 0)"
+      (click)="onContinue()"
+    >
+      Continue
+    </button>
+
+    <!-- Bouton Submit : affiché uniquement sur le dernier step -->
+    <button
+      type="button"
+      class="btn-primary"
+      *ngIf="isLastStep((steps$ | async) ?? [], (currentStepIndex$ | async) ?? 0)"
+      [disabled]="(canSubmit$ | async) === false"
+      (click)="onSubmit()"
+    >
+      Submit
+    </button>
+      </div>
+    </div>
+
+    <ng-template #sessionClosedTpl>
+    </ng-template>
+
+    <app-confirmation-modal
+      [title]="modalTitle"
+      [message]="modalMessage"
+      [type]="modalType"
+      [isOpen]="(modalOpen$ | async) ?? false"
+      (close)="closeModal()"
+    ></app-confirmation-modal>
+
+  </div>
+
+  <ng-template #loadingTpl>
+    <p>Loading...</p>
+  </ng-template>
+
+</ng-container>

@@ -1,0 +1,28 @@
+<!-- completion-score.component.html -->
+<div class="completion-score" *ngIf="progress$ | async as progress">
+
+  <div class="score-top">
+    <div class="score-text">
+      <h4>Completion score</h4>
+      <p>Complete required fields and confidence levels before continuing to the next assessment step.</p>
+    </div>
+
+    <div class="score-circle" [style.--pct]="progress.progress_percentage">
+      {{ progress.progress_percentage }}%
+    </div>
+  </div>
+
+  <div class="score-meta">
+    <span class="score-pill">{{ progress.answered_questions }}/{{ progress.total_questions }} answered</span>
+    <span class="score-pill">Step {{ ((currentStepIndex$ | async) ?? 0) + 1 }} of {{ (steps$ | async)?.length }}</span>
+  </div>
+
+  <div class="score-progress-bar">
+    <div
+      class="score-progress-segment"
+      *ngFor="let step of (steps$ | async); let i = index"
+      [class.filled]="i <= ((currentStepIndex$ | async) ?? 0)"
+    ></div>
+  </div>
+
+</div>

@@ -1,0 +1,36 @@
+.step-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 6px;
+  box-shadow: var(--shadow-sm);
+  width: fit-content;
+}
+
+.step-tab {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.step-tab:hover {
+  background: var(--bg-hover);
+  color: var(--primary);
+}
+
+.step-tab.active {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 118, 245, 0.25);
+}

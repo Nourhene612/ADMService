@@ -1,0 +1,93 @@
+.completion-score {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  text-align: left;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* TOP ROW: texte à gauche, anneau à droite */
+.score-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.score-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 30px;
+  font-weight: 700;
+  
+}
+
+.completion-score h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  color: var(--text-main);
+}
+
+.completion-score p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* RING */
+.score-circle {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary);
+  background: #eef0f3; /* gris clair plat, comme sur la maquette */
+}
+
+/* PILLS */
+.score-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.score-pill {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* SEGMENTED PROGRESS BAR */
+.score-progress-bar {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.score-progress-segment {
+  flex: 1;
+  height: 5px;
+  border-radius: 4px;
+  background: var(--border-light);
+  transition: background 0.2s ease;
+}
+
+.score-progress-segment.filled {
+  background: var(--primary);
+}

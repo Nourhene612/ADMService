@@ -131,7 +131,25 @@
 
     </div>
 
+    <!-- Options (visible only for select/multiselect/radio/checkbox) -->
+<div class="form-group" *ngIf="showOptions" [formGroup]="form">
+  <label class="form-label">Options</label>
 
+  <div formArrayName="options">
+    <div class="option-row" *ngFor="let opt of options.controls; let i = index">
+      <input
+        type="text"
+        class="input-text"
+        [formControlName]="i"
+        placeholder="Option label...">
+      <button type="button" class="icon-btn icon-danger" (click)="removeOption(i)">🗑</button>
+    </div>
+  </div>
+
+  <button type="button" class="btn-add-option" (click)="addOption()">
+    + Add Option
+  </button>
+</div>
 
 
 

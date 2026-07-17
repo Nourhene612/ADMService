@@ -1,0 +1,11 @@
+<!-- wizard-step-tabs.component.html -->
+<div class="step-tabs">
+  <button
+    *ngFor="let step of steps; let i = index"
+    class="step-tab"
+    [class.active]="i === currentStepIndex"
+    (click)="selectStep(i)"
+  >
+    {{ formatStepLabel(step) }}
+  </button>
+</div>
