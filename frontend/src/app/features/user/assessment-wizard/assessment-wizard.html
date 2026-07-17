@@ -71,14 +71,13 @@
 
     <!-- Bouton Submit : affiché uniquement sur le dernier step -->
     <button
-      type="button"
-      class="btn-primary"
-      *ngIf="isLastStep((steps$ | async) ?? [], (currentStepIndex$ | async) ?? 0)"
-      [disabled]="(canSubmit$ | async) === false"
-      (click)="onSubmit()"
-    >
-      Submit
-    </button>
+  type="button"
+  class="btn-primary"
+  *ngIf="isLastStep((steps$ | async) ?? [], (currentStepIndex$ | async) ?? 0)"
+  (click)="onSubmit()"
+>
+  Submit
+</button>
       </div>
     </div>
 
