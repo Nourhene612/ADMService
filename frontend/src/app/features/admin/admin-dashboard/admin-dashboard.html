@@ -164,5 +164,11 @@
       </app-question-form>
     </div>
   </div>
-
+  <app-confirmation-modal
+    [title]="modalTitle"
+    [message]="modalMessage"
+    [type]="modalType"
+    [isOpen]="(modalOpen$ | async) ?? false"
+    (close)="closeModal()">
+  </app-confirmation-modal>
 </div>

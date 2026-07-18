@@ -34,35 +34,100 @@
     (ngModelChange)="onNumberChange($event)"
   />
 
-  <!-- SINGLE SELECT / RADIO CARD -->
-  <div class="option-cards" *ngIf="question.answer_type === 'single_select' || question.answer_type === 'radio_card'">
-    <button
-      *ngFor="let option of options"
-      type="button"
-      class="option-card"
-      [class.selected]="selectedOption === option"
-      [disabled]="!question.is_enabled"
-      (click)="onSingleSelectChange(option)"
-    >
-      {{ option }}
-    </button>
+  <!-- SELECT (SEARCHABLE, SINGLE) -->
+<div
+  class="searchable-select"
+  *ngIf="question.answer_type === 'select'"
+  [class.disabled]="!question.is_enabled"
+  (clickOutside)="closeDropdown()"
+>
+  <div class="searchable-select-control" (click)="toggleDropdown()">
+    <span *ngIf="selectedOption; else placeholderTpl" class="selected-value">
+      {{ selectedOption }}
+    </span>
+    <ng-template #placeholderTpl>
+      <span class="placeholder">{{ question.input_placeholder ?? 'Sélectionner...' }}</span>
+    </ng-template>
+    <span class="arrow" [class.open]="isDropdownOpen">▾</span>
   </div>
 
-  <!-- MULTI SELECT (chips) -->
-  <div class="multi-select" *ngIf="question.answer_type === 'multi_select'">
-    <div class="chips">
+  <div class="searchable-select-dropdown" *ngIf="isDropdownOpen">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Rechercher..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="filterOptions($event)"
+      (click)="$event.stopPropagation()"
+      autofocus
+    />
+    <div class="options-list">
+      <div
+        class="option-row"
+        *ngFor="let option of filteredOptions"
+        [class.selected]="selectedOption === option"
+        (click)="onSingleSelectChange(option); closeDropdown()"
+      >
+        <span>{{ option }}</span>
+        <span class="check" *ngIf="selectedOption === option">✓</span>
+      </div>
+      <div class="no-results" *ngIf="!filteredOptions.length">
+        Aucun résultat
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- MULTI SELECT (SEARCHABLE) -->
+<div
+  class="searchable-select"
+  *ngIf="question.answer_type === 'multi_select'"
+  [class.disabled]="!question.is_enabled"
+  (clickOutside)="closeDropdown()"
+>
+  <!-- Zone d'affichage / déclencheur -->
+  <div class="searchable-select-control" (click)="toggleDropdown()">
+    <div class="chips" *ngIf="selectedOptions.length; else placeholderTpl">
       <span class="chip" *ngFor="let selected of selectedOptions">
         {{ selected }}
-        <button type="button" (click)="removeChip(selected)">×</button>
+        <button type="button" (click)="removeChip(selected); $event.stopPropagation()">×</button>
       </span>
     </div>
-    <select (change)="toggleMultiSelectOption($any($event.target).value)" [disabled]="!question.is_enabled">
-      <option value="" disabled selected>Search and select or type to add</option>
-      <option *ngFor="let option of options" [value]="option">{{ option }}</option>
-    </select>
+    <ng-template #placeholderTpl>
+      <span class="placeholder">{{ question.input_placeholder ?? 'Rechercher et sélectionner...' }}</span>
+    </ng-template>
+    <span class="arrow" [class.open]="isDropdownOpen">▾</span>
   </div>
 
-  <!-- BOOLEAN (radio simple, ex: Low/Medium/High si options fournies, sinon Oui/Non) -->
+  <!-- Dropdown -->
+  <div class="searchable-select-dropdown" *ngIf="isDropdownOpen">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Rechercher..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="filterOptions($event)"
+      (click)="$event.stopPropagation()"
+      autofocus
+    />
+    <div class="options-list">
+      <div
+        class="option-row"
+        *ngFor="let option of filteredOptions"
+        [class.selected]="selectedOptions.includes(option)"
+        (click)="toggleMultiSelectOption(option)"
+      >
+        <span>{{ option }}</span>
+        <span class="check" *ngIf="selectedOptions.includes(option)">✓</span>
+      </div>
+      <div class="no-results" *ngIf="!filteredOptions.length">
+        Aucun résultat
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- BOOLEAN -->
   <div class="radio-group" *ngIf="question.answer_type === 'boolean'">
     <label *ngFor="let option of options">
       <input
@@ -76,7 +141,21 @@
     </label>
   </div>
 
-  <!-- CHECKBOX (multiple selection with checkboxes) -->
+  <!-- RADIO -->
+  <div class="radio-group" *ngIf="question.answer_type === 'radio'">
+    <label *ngFor="let option of options">
+      <input
+        type="radio"
+        [name]="question.uid"
+        [checked]="selectedOption === option"
+        (change)="onSingleSelectChange(option)"
+        [disabled]="!question.is_enabled"
+      />
+      {{ option }}
+    </label>
+  </div>
+
+  <!-- CHECKBOX -->
   <div class="checkbox-group" *ngIf="question.answer_type === 'checkbox'">
     <label *ngFor="let option of options" class="checkbox-label">
       <input

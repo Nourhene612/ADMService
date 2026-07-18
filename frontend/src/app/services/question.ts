@@ -17,7 +17,12 @@ export interface Question {
   is_active: boolean;
   score_weight: number;
 }
-
+export interface DeleteQuestionResult {
+  deleted: boolean;
+  deactivated: boolean;
+  message: string;
+  question_uid: string;
+}
 export type GroupedQuestions = {
   [sectionKey: string]: {
     [subsectionKey: string]: Question[];
@@ -57,10 +62,9 @@ export class QuestionService {
     return this.http.put<Question>(`${this.apiUrl}/${questionUid}`, data);
   }
 
-  deleteQuestion(questionUid: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${questionUid}`);
-  }
-
+  deleteQuestion(questionUid: string): Observable<DeleteQuestionResult> {
+  return this.http.delete<DeleteQuestionResult>(`${this.apiUrl}/${questionUid}`);
+}
   updateStatus(questionUid: string, isActive: boolean, updatedBy: string) {
     return this.http.patch(`${this.apiUrl}/${questionUid}/status`, {
       is_active: isActive,

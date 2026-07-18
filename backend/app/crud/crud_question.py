@@ -1,3 +1,4 @@
+from app.models.adm_assessment_answer import AdmAssessmentAnswer
 from sqlalchemy.orm import Session as DBSession
 from app.models.adm_assessment_question import AdmAssessmentQuestion
 
@@ -40,10 +41,39 @@ def update(db: DBSession, question: AdmAssessmentQuestion, data: dict) -> AdmAss
     db.refresh(question)
     return question
 
+def delete(db: DBSession, question: AdmAssessmentQuestion) -> dict:
+    """
+    Supprime physiquement la question si elle n'a aucune réponse liée.
+    Sinon, la désactive (soft delete) pour préserver l'historique des réponses.
+    Retourne un dict avec le résultat pour informer l'admin.
+    """
+    has_answers = db.query(AdmAssessmentAnswer).filter(
+        AdmAssessmentAnswer.question_uid == question.uid
+    ).first() is not None
 
-def delete(db: DBSession, question: AdmAssessmentQuestion) -> None:
+    if has_answers:
+        question.is_active = False
+        db.commit()
+        db.refresh(question)
+        return {
+            "deleted": False,
+            "deactivated": True,
+            "message": (
+                f"La question \"{question.question_text}\" a des réponses existantes. "
+                "Elle a été désactivée au lieu d'être supprimée afin de préserver l'historique."
+            ),
+            "question_uid": question.uid,
+        }
+
     db.delete(question)
-    db.commit() 
+    db.commit()
+    return {
+        "deleted": True,
+        "deactivated": False,
+        "message": "Question supprimée avec succès.",
+        "question_uid": question.uid,
+    }
+
 
 def get_active_ordered(db: DBSession) -> list[AdmAssessmentQuestion]:
     return (

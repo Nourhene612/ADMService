@@ -67,13 +67,13 @@ def update_question(question_uid: str, payload: AdmAssessmentQuestionUpdate, db:
     return crud_question.update(db, question, payload.model_dump())
 
 
-@router.delete("/{question_uid}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{question_uid}", status_code=status.HTTP_200_OK)
 def delete_question(question_uid: str, db: Session = Depends(get_db)):
     question = crud_question.get(db, question_uid)
     if not question:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Question introuvable.")
-    crud_question.delete(db, question)
-
+    result = crud_question.delete(db, question)
+    return result
 
 # ----------------------
 # Routes avec logique métier — passent par question_service

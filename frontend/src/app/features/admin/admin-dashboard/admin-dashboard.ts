@@ -1,7 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
 import { QuestionService, GroupedQuestions, Question } from 'src/app/services';
 import { QuestionFormComponent } from 'src/app/features/admin/question-builder/question-form/question-form';
+import { ConfirmationModalComponent } from 'src/app/features/user/assessment-wizard/confirmation-modal.component';
 
 interface SubsectionGroup {
   subsectionKey: string;
@@ -19,7 +21,7 @@ interface StepMeta {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, QuestionFormComponent],
+  imports: [CommonModule, QuestionFormComponent, ConfirmationModalComponent],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })
@@ -36,12 +38,23 @@ export class AdminDashboardComponent implements OnInit {
   isNewStep = false;
   editingQuestion: Question | null = null;
 
+  // --- Popup de confirmation (delete/deactivate) ---
+  modalOpenSubject = new BehaviorSubject<boolean>(false);
+  modalOpen$ = this.modalOpenSubject.asObservable();
+  modalTitle = '';
+  modalMessage = '';
+  modalType: 'success' | 'warning' | 'info' = 'info';
+
   constructor(
     private questionService: QuestionService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
     this.loadGroupedQuestions();
   }
 
@@ -56,7 +69,6 @@ export class AdminDashboardComponent implements OnInit {
         this.syncExpandedGroupForCurrentSection();
         this.cdr.detectChanges();
       },
-      
     });
   }
 
@@ -184,22 +196,39 @@ export class AdminDashboardComponent implements OnInit {
     };
     this.questionService.createQuestion(clone).subscribe({
       next: () => this.loadGroupedQuestions(),
-      
     });
   }
 
   deleteQuestion(q: Question): void {
-    
-
     if (!q.uid) {
-      
       return;
     }
 
     this.questionService.deleteQuestion(q.uid).subscribe({
-      next: () => this.loadGroupedQuestions(),
-      
+      next: (result) => {
+        if (result.deactivated) {
+          this.openModal('Question désactivée', result.message, 'warning');
+        } else {
+          this.openModal('Question supprimée', result.message, 'success');
+        }
+        this.loadGroupedQuestions();
+      },
+      error: (err) => {
+        console.error('Erreur suppression question:', err);
+        this.openModal('Erreur', 'Une erreur est survenue lors de la suppression.', 'warning');
+      },
     });
+  }
+
+  closeModal(): void {
+    this.modalOpenSubject.next(false);
+  }
+
+  private openModal(title: string, message: string, type: 'success' | 'warning' | 'info'): void {
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.modalType = type;
+    this.modalOpenSubject.next(true);
   }
 
   closeQuestionForm(): void {

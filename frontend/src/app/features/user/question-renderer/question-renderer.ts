@@ -4,11 +4,11 @@ import { FormsModule } from '@angular/forms';
 
 import { SessionQuestion } from 'src/app/services/adm-session-question';
 import { WizardStateService, LocalAnswerValue } from 'src/app/services/wizard-state';
-
+import { ClickOutsideDirective } from './click-outside.directive';
 @Component({
   selector: 'app-question-renderer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ClickOutsideDirective],
   templateUrl: './question-renderer.html',
   styleUrls: ['./question-renderer.css'],
 })
@@ -19,9 +19,11 @@ export class QuestionRendererComponent implements OnInit {
   textValue = '';
   numberValue: number | null = null;
   booleanValue: boolean | null = null;
-  selectedOption: string | null = null;      // single_select / radio_card
-  selectedOptions: string[] = [];             // multi_select (chips)
-
+  selectedOption: string | null = null;
+  selectedOptions: string[] = [];
+  isDropdownOpen = false;
+  searchTerm = '';
+  filteredOptions: string[] = [];
   constructor(private wizardState: WizardStateService) {}
 
   ngOnInit(): void {
@@ -35,6 +37,7 @@ export class QuestionRendererComponent implements OnInit {
     this.selectedOptions = Array.isArray(existing.response_list_json)
       ? existing.response_list_json
       : [];
+      this.filteredOptions = this.options;
   }
 
   get options(): string[] {
@@ -79,6 +82,11 @@ export class QuestionRendererComponent implements OnInit {
     this.updateAnswer({ response_string: value });
   }
 
+  clearSingleSelect(): void {
+    this.selectedOption = null;
+    this.updateAnswer({ response_string: null });
+  }
+
   toggleMultiSelectOption(option: string): void {
     const index = this.selectedOptions.indexOf(option);
     if (index === -1) {
@@ -97,4 +105,23 @@ export class QuestionRendererComponent implements OnInit {
   private updateAnswer(value: LocalAnswerValue): void {
     this.wizardState.setAnswerValue(this.question.uid, value);
   }
+  toggleDropdown() {
+  if (!this.question.is_enabled) return;
+  this.isDropdownOpen = !this.isDropdownOpen;
+  if (this.isDropdownOpen) {
+    this.searchTerm = '';
+    this.filteredOptions = this.options;
+  }
+}
+
+closeDropdown() {
+  this.isDropdownOpen = false;
+}
+
+filterOptions(term: string) {
+  const search = term.toLowerCase().trim();
+  this.filteredOptions = this.options.filter(opt =>
+    opt.toLowerCase().includes(search)
+  );
+}
 }

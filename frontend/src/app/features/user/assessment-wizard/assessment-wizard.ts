@@ -111,7 +111,7 @@ export class AssessmentWizardComponent implements OnInit {
   }
 
   onSaveDraft(): void {
-    console.log('BUTTON CLICKED');
+    
     if (!this.wizardState.isSessionEditable()) return;
     this.wizardState.saveDraft();
   }
@@ -121,10 +121,10 @@ export class AssessmentWizardComponent implements OnInit {
 
     const submittedBy = 'demo-customer';
     this.canSubmit$.pipe(take(1)).subscribe((canSubmit) => {
-       console.log('CAN SUBMIT:', canSubmit);
+       
       if (!canSubmit) {
         this.missingRequiredQuestions$.pipe(take(1)).subscribe((questions) => {
-          const missingList = questions.map((question) => `- ${question.question_text}`).join('\n');
+          const missingList = questions.map((question) => question.question_text).join('\n');
           this.openModal(
             'Required questions missing',
             `Please complete the following required questions:\n${missingList}`,
@@ -133,7 +133,6 @@ export class AssessmentWizardComponent implements OnInit {
         });
         return;
       }
-      console.log('CALLING wizardState.submit()');
       this.wizardState.submit(submittedBy).subscribe({
         next: () => this.openModal('Success', 'Your answer is submitted', 'success'),
         error: () =>
@@ -147,16 +146,19 @@ export class AssessmentWizardComponent implements OnInit {
     this.wizardState.cancel('Annulé par utilisateur', 'demo-customer').subscribe();
   }
 
-  closeModal(): void {
-    this.modalOpenSubject.next(false);
-  }
+ closeModal(): void {
+  const wasSuccess = this.modalType === 'success';
+  this.modalOpenSubject.next(false);
 
+  if (wasSuccess) {
+    this.wizardState.startNewSession('demo-customer', 'enterprise_adm');
+  }
+}
   private openModal(title: string, message: string, type: 'success' | 'warning' | 'info'): void {
     this.modalTitle = title;
     this.modalMessage = message;
     this.modalType = type;
-    console.log('OPENING MODAL:', { title, type, message });
-    console.trace('openModal called from:');
+    
     this.modalOpenSubject.next(true);
   }
 }
