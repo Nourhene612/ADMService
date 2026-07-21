@@ -1,0 +1,113 @@
+<div class="settings-panel" *ngIf="form">
+  <div class="settings-header">
+    <span class="settings-title">Question Settings</span>
+
+  </div>
+
+  <div class="settings-subheader" *ngIf="isEditMode">
+    <span class="settings-label-text">Selected Question</span>
+    <div class="selected-question-name">
+      {{ question?.question_text }} 
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="save()" class="settings-form">
+
+    
+
+    <div class="field-group">
+      <label class="field-label">Question Label *</label>
+      <input type="text" formControlName="question_text" placeholder="Label for the questio" class="field-input" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Question Reference *</label>
+      <input type="text" formControlName="question_ref" placeholder="question refrence" class="field-input" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Helper Text</label>
+      <textarea formControlName="help_text" placeholder="Add helper text for this question..." class="field-textarea"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Field Type *</label>
+      <select formControlName="answer_type" class="field-select">
+        <option *ngFor="let type of fieldTypes" [value]="type.value">{{ type.label }}</option>
+      </select>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-item">
+        <span class="toggle-label">Required</span>
+        <label class="switch">
+          <input type="checkbox" formControlName="is_required" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-item">
+        <span class="toggle-label">Active</span>
+        <label class="switch">
+          <input type="checkbox" formControlName="is_active" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="field-group" *ngIf="isChoiceType">
+      <div class="options-header">
+        <label class="field-label">Options</label>
+        <button type="button" class="btn-add-option" (click)="addOption()">+ Add Option</button>
+      </div>
+
+      <div class="option-row" *ngFor="let opt of options.controls; let i = index" [formGroup]="form">
+        <span class="drag-handle">⋮⋮</span>
+        <input type="text" [formControl]="$any(opt)" class="option-input" />
+        <button type="button" class="icon-btn" title="Delete" (click)="removeOption(i)">🗑</button>
+      </div>
+    </div>
+
+    <div class="toggle-row" *ngIf="isChoiceType">
+      <div class="toggle-item">
+        <span class="toggle-label">Allow "Other" option</span>
+        <label class="switch">
+          <input type="checkbox" formControlName="allow_other" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Display Order</label>
+      <input type="number" formControlName="order" class="field-input" min="0" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Placeholder</label>
+      <input type="text" formControlName="placeholder" placeholder="Input placeholder..." class="field-input" />
+    </div>
+
+    <div class="settings-footer">
+      <button
+        type="button"
+        class="btn-delete"
+        *ngIf="isEditMode"
+        (click)="onDelete()"
+      >
+        Delete
+      </button>
+      <div class="footer-right">
+        <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="isSubmitting">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Save changes' : 'Save question') }}
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<div class="settings-empty" *ngIf="!form">
+  <p>Select a question to edit its settings.</p>
+</div>

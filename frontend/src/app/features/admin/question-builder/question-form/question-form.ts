@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
@@ -32,7 +32,8 @@ export class QuestionFormComponent implements OnInit, OnChanges {
 
   constructor(
     private fb: FormBuilder,
-    private questionService: QuestionService
+    private questionService: QuestionService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -99,6 +100,7 @@ export class QuestionFormComponent implements OnInit, OnChanges {
       });
       this.setOptions([]);
     }
+    this.cdr.detectChanges();
   }
 
   save(): void {
@@ -106,6 +108,7 @@ export class QuestionFormComponent implements OnInit, OnChanges {
 
     if (this.questionForm.invalid) {
       this.questionForm.markAllAsTouched();
+      this.cdr.detectChanges();
       return;
     }
 
@@ -113,9 +116,9 @@ export class QuestionFormComponent implements OnInit, OnChanges {
     const formValue = this.questionForm.getRawValue();
 
     const isChoiceType = CHOICE_TYPES.includes(formValue.answer_type);
-const optionsPayload = isChoiceType && formValue.options?.length
-  ? formValue.options.filter((o: string) => o?.trim()).map((o: string) => o.trim())
-  : null;
+    const optionsPayload = isChoiceType && formValue.options?.length
+      ? formValue.options.filter((o: string) => o?.trim()).map((o: string) => o.trim())
+      : null;
 
     const payload = {
       question_ref: formValue.question_ref?.trim(),
@@ -142,12 +145,14 @@ const optionsPayload = isChoiceType && formValue.options?.length
 
     request$.pipe(finalize(() => {
       this.isSubmitting = false;
+      this.cdr.detectChanges();
     })).subscribe({
       next: () => {
         this.questionSaved.emit();
       },
       error: (err) => {
         console.error('Failed to save question', err);
+        this.cdr.detectChanges();
       }
     });
   }

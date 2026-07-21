@@ -1,11 +1,27 @@
 <div class="dashboard-container">
 
   <div class="dashboard-header">
-    <div>
-      <h1 class="dashboard-title">Assessment Builder</h1>
-      <p class="dashboard-subtitle">Manage assessment steps, groups and questions.</p>
-    </div>
+  <div>
+    <h1 class="dashboard-title">ADM Assessment Management</h1>
+    <p class="dashboard-subtitle">Manage ADM assessment steps, question groups, and questions.</p>
+  </div> 
+  <div class="header-meta" *ngIf="lastUpdated">
+    <div class="meta-label">Last updated</div>
+    <div class="meta-value" *ngIf="lastUpdated">
+  {{ lastUpdated | date:'MMM d, y h:mm a' }}
+</div>
   </div>
+
+  <div class="header-actions">
+    <button class="btn-header-outline" (click)="openPreview()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+      Preview
+    </button>
+  </div>
+</div>
 
   <div class="stats-row">
     <div class="stat-card">
@@ -40,21 +56,37 @@
         <div class="stat-value">{{ totalQuestions }}</div>
         <div class="stat-caption">Across all steps</div>
       </div>
+      
     </div>
 
     <div class="stat-card">
-      <div class="stat-icon icon-orange"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-    <path d="M12 2L14.9 8.6L22 9.3L16.5 14L18.2 21L12 17.3L5.8 21L7.5 14L2 9.3L9.1 8.6L12 2Z"/>
-  </svg>
-</div>
+      <div class="stat-icon icon-orange">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <path d="M12 2L14.9 8.6L22 9.3L16.5 14L18.2 21L12 17.3L5.8 21L7.5 14L2 9.3L9.1 8.6L12 2Z"/>
+        </svg>
+      </div>
       <div>
         <div class="stat-label">Required Questions</div>
         <div class="stat-value">{{ requiredQuestions }}</div>
         <div class="stat-caption">Mandatory questions</div>
       </div>
-    </div>
+    </div> 
+    <div class="stat-card">
+  <div class="stat-icon icon-purple">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.82 0l4.6-4.6a2 2 0 0 0 0-2.82Z"/>
+      <circle cx="7.5" cy="7.5" r="1.5"/>
+    </svg>
   </div>
+  <div>
+    <div class="stat-label">Published Version</div>
+    <div class="stat-value">V1.0</div>
+  
+  </div>
+</div>
 
+  </div>
+   
   <div class="main-layout">
 
     <!-- Steps list -->
@@ -70,7 +102,6 @@
         [class.active]="step.sectionKey === currentSection"
         (click)="selectSection(step.sectionKey)">
         <div class="step-header">
-         
           <div class="step-name">{{ step.sectionKey }}</div>
         </div>
         <div class="step-meta">
@@ -117,7 +148,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let q of group.questions">
+              <tr
+                *ngFor="let q of group.questions"
+                [class.row-selected]="selectedQuestion?.uid === q.uid"
+                (click)="selectQuestion(q)">
                 <td>{{ q.question_text }}</td>
                 <td>{{ q.answer_type }}</td>
                 <td><span class="check-badge" *ngIf="q.is_required">✓</span></td>
@@ -127,9 +161,8 @@
                   </span>
                 </td>
                 <td class="actions-cell">
-                  <button class="icon-btn" title="Edit" (click)="editQuestion(q)">✎</button>
-                  
-                  <button class="icon-btn icon-danger" title="Delete" (click)="deleteQuestion(q)">🗑</button>
+                  <button class="icon-btn" title="Edit" (click)="editQuestion(q); $event.stopPropagation()">✎</button>
+                  <button class="icon-btn icon-danger" title="Delete" (click)="deleteQuestion(q); $event.stopPropagation()">🗑</button>
                 </td>
               </tr>
             </tbody>
@@ -150,20 +183,33 @@
       </div>
     </div>
 
+    <!-- Question Settings (3e colonne, toujours visible) -->
+    <app-question-settings
+      class="settings-panel-slot"
+      [question]="selectedQuestion"
+      [prefilledSection]="settingsSection"
+      [prefilledSubsection]="settingsSubsection"
+      (closeRequested)="closeSettingsPanel()"
+      (saved)="onSettingsSaved()"
+      (deleteRequested)="onDeleteRequestedFromSettings($event)">
+    </app-question-settings>
+
   </div>
 
+  <!-- Modal : Add Step / Add Group uniquement -->
   <div class="modal-overlay" *ngIf="showQuestionForm" (click)="closeQuestionForm()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <app-question-form
-        [prefilledSection]="activeSection"
-        [prefilledSubsection]="activeSubsection"
-        [isNewGroup]="isNewGroup"
-        [editingQuestion]="editingQuestion"
-        (closeRequested)="closeQuestionForm()"
-        (questionSaved)="onQuestionSaved()">
-      </app-question-form>
-    </div>
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <app-question-form
+      [prefilledSection]="activeSection"
+      [prefilledSubsection]="activeSubsection"
+      [isNewGroup]="isNewGroup"
+      [editingQuestion]="null"
+      (closeRequested)="closeQuestionForm()"
+      (questionSaved)="onQuestionSaved()">
+    </app-question-form>
   </div>
+</div>
+
   <app-confirmation-modal
     [title]="modalTitle"
     [message]="modalMessage"

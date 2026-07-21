@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 import { QuestionService, GroupedQuestions, Question } from 'src/app/services';
 import { QuestionFormComponent } from 'src/app/features/admin/question-builder/question-form/question-form';
+import { QuestionSettingsComponent } from 'src/app/features/admin/question-builder/question-settings/question-settings';
 import { ConfirmationModalComponent } from 'src/app/features/user/assessment-wizard/confirmation-modal.component';
 
 interface SubsectionGroup {
@@ -21,7 +22,7 @@ interface StepMeta {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, QuestionFormComponent, ConfirmationModalComponent],
+  imports: [CommonModule, QuestionFormComponent, QuestionSettingsComponent, ConfirmationModalComponent],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })
@@ -30,13 +31,19 @@ export class AdminDashboardComponent implements OnInit {
   sections: string[] = [];
   currentSection = '';
   expandedGroupKey: string | null = null;
+  lastUpdated: Date = new Date(); 
 
+  // --- Modal (Add Step / Add Group uniquement) ---
   showQuestionForm = false;
   activeSection = '';
   activeSubsection = '';
   isNewGroup = false;
   isNewStep = false;
-  editingQuestion: Question | null = null;
+
+  // --- Panneau latéral "Question Settings" (toujours visible, 3e colonne) ---
+  selectedQuestion: Question | null = null;
+  settingsSection = '';
+  settingsSubsection = '';
 
   // --- Popup de confirmation (delete/deactivate) ---
   modalOpenSubject = new BehaviorSubject<boolean>(false);
@@ -66,7 +73,9 @@ export class AdminDashboardComponent implements OnInit {
         if (this.sections.length && !this.sections.includes(this.currentSection)) {
           this.currentSection = this.sections[0];
         }
+        this.lastUpdated = new Date(); 
         this.syncExpandedGroupForCurrentSection();
+        this.refreshSelectedQuestionAfterReload();
         this.cdr.detectChanges();
       },
     });
@@ -75,6 +84,7 @@ export class AdminDashboardComponent implements OnInit {
   selectSection(section: string): void {
     this.currentSection = section;
     this.syncExpandedGroupForCurrentSection();
+    this.autoSelectFirstQuestion();
   }
 
   private syncExpandedGroupForCurrentSection(): void {
@@ -88,6 +98,32 @@ export class AdminDashboardComponent implements OnInit {
 
     if (!this.expandedGroupKey || !subsectionKeys.includes(this.expandedGroupKey)) {
       this.expandedGroupKey = subsectionKeys[0];
+    }
+  }
+
+  /** Sélectionne automatiquement la 1re question du groupe courant si rien n'est sélectionné. */
+  private autoSelectFirstQuestion(): void {
+    if (this.selectedQuestion) return;
+    const groups = this.currentSectionGroups;
+    const firstGroupWithQuestions = groups.find(g => g.questions.length > 0);
+    const firstQuestion = firstGroupWithQuestions?.questions[0] ?? null;
+    if (firstQuestion) {
+      this.selectedQuestion = firstQuestion;
+      this.settingsSection = firstQuestion.section_key;
+      this.settingsSubsection = firstQuestion.subsection_key;
+    }
+  }
+
+  /** Après reload (save/delete), réaligne la sélection sur la version fraîche de la question. */
+  private refreshSelectedQuestionAfterReload(): void {
+    if (this.selectedQuestion?.uid) {
+      const sectionData = this.groupedQuestions[this.selectedQuestion.section_key] || {};
+      const groupQuestions = sectionData[this.selectedQuestion.subsection_key] || [];
+      const fresh = groupQuestions.find(q => q.uid === this.selectedQuestion!.uid);
+      this.selectedQuestion = fresh ?? null;
+    }
+    if (!this.selectedQuestion) {
+      this.autoSelectFirstQuestion();
     }
   }
 
@@ -151,40 +187,36 @@ export class AdminDashboardComponent implements OnInit {
     return Object.values(subsections).reduce((s, qs) => s + qs.length, 0);
   }
 
+  // ---------- Question Settings (3e colonne) ----------
+
+  selectQuestion(q: Question): void {
+    this.selectedQuestion = q;
+    this.settingsSection = q.section_key;
+    this.settingsSubsection = q.subsection_key;
+  }
+
   openAddQuestion(subsectionKey: string): void {
-    this.activeSection = this.currentSection;
-    this.activeSubsection = subsectionKey;
-    this.isNewGroup = false;
-    this.isNewStep = false;
-    this.editingQuestion = null;
-    this.showQuestionForm = true;
-  }
-
-  openAddGroup(): void {
-    this.activeSection = this.currentSection;
-    this.activeSubsection = '';
-    this.isNewGroup = true;
-    this.isNewStep = false;
-    this.editingQuestion = null;
-    this.showQuestionForm = true;
-  }
-
-  openAddStep(): void {
-    this.activeSection = '';
-    this.activeSubsection = '';
-    this.isNewGroup = false;
-    this.isNewStep = true;
-    this.editingQuestion = null;
-    this.showQuestionForm = true;
+    this.selectedQuestion = null;
+    this.settingsSection = this.currentSection;
+    this.settingsSubsection = subsectionKey;
   }
 
   editQuestion(q: Question): void {
-    this.activeSection = q.section_key;
-    this.activeSubsection = q.subsection_key;
-    this.isNewGroup = false;
-    this.isNewStep = false;
-    this.editingQuestion = q;
-    this.showQuestionForm = true;
+    this.selectQuestion(q);
+  }
+
+  closeSettingsPanel(): void {
+    this.selectedQuestion = null;
+    this.settingsSection = '';
+    this.settingsSubsection = '';
+  }
+
+  onSettingsSaved(): void {
+    this.loadGroupedQuestions();
+  }
+
+  onDeleteRequestedFromSettings(q: Question): void {
+    this.deleteQuestion(q);
   }
 
   duplicateQuestion(q: Question): void {
@@ -211,6 +243,9 @@ export class AdminDashboardComponent implements OnInit {
         } else {
           this.openModal('Question supprimée', result.message, 'success');
         }
+        if (this.selectedQuestion?.uid === q.uid) {
+          this.selectedQuestion = null;
+        }
         this.loadGroupedQuestions();
       },
       error: (err) => {
@@ -231,17 +266,35 @@ export class AdminDashboardComponent implements OnInit {
     this.modalOpenSubject.next(true);
   }
 
+  // ---------- Modal Add Step / Add Group ----------
+
+  openAddGroup(): void {
+    this.activeSection = this.currentSection;
+    this.activeSubsection = '';
+    this.isNewGroup = true;
+    this.showQuestionForm = true;
+  }
+
+  openAddStep(): void {
+    this.activeSection = '';
+    this.activeSubsection = '';
+    this.isNewGroup = false;
+    this.showQuestionForm = true;
+  }
+
   closeQuestionForm(): void {
     this.showQuestionForm = false;
     this.activeSection = '';
     this.activeSubsection = '';
     this.isNewGroup = false;
     this.isNewStep = false;
-    this.editingQuestion = null;
   }
 
   onQuestionSaved(): void {
     this.loadGroupedQuestions();
     this.closeQuestionForm();
   }
+  openPreview(): void {
+  window.open('/user', '_blank');
+}
 }
