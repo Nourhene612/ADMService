@@ -1,8 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+/* ===== GLOBAL SAFETY NET AGAINST HORIZONTAL SCROLL ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .dashboard-container {
-  max-width: 1600px;
-  margin: 0 auto;
+  max-width:  2000px;
+  margin: 0 ;
   width: 100%;
   padding: 18px 24px;
   font-family: 'Inter', system-ui, sans-serif;
@@ -31,6 +41,7 @@
 /* ===== HEADER ===== */
 .dashboard-header {
   display: flex;
+  flex-wrap: wrap; /* let title/meta/actions wrap instead of overflowing */
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
@@ -43,6 +54,7 @@
   letter-spacing: -0.02em;
   color: var(--text-main);
   line-height: 1.2;
+  word-break: break-word;
 }
 
 .dashboard-subtitle {
@@ -75,6 +87,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .btn-header-outline {
@@ -90,6 +103,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s ease;
+  white-space: nowrap;
 }
 
 .btn-header-outline:hover {
@@ -98,14 +112,14 @@
 
 .btn-header-outline svg {
   flex-shrink: 0;
-  width: 25px;            
-  height: 25px
+  width: 25px;
+  height: 25px;
 }
 
 /* ===== STAT CARDS ===== */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -119,6 +133,7 @@
   gap: 10px;
   align-items: center;
   box-shadow: var(--shadow-soft);
+  min-width: 0; /* allow shrinking inside grid track */
 }
 
 .stat-icon {
@@ -163,10 +178,11 @@
 /* ===== LAYOUT ===== */
 .main-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 22%) minmax(0, 1fr) minmax(280px, 320px);
+  grid-template-columns: 390px minmax(0, 1fr) 400px;
   grid-auto-rows: min-content;
   gap: 14px;
   align-items: start;
+  min-width: 0;
 }
 
 /* ===== STEPS PANEL ===== */
@@ -178,6 +194,7 @@
   height: fit-content;
   align-self: start;
   box-shadow: var(--shadow-soft);
+  min-width: 0;
 }
 
 .panel-header {
@@ -186,6 +203,7 @@
   align-items: center;
   margin-bottom: 10px;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .panel-title {
@@ -204,6 +222,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 200ms ease;
+  white-space: nowrap;
 }
 
 .btn-add-step:hover {
@@ -252,6 +271,7 @@
   font-weight: 700;
   font-size: 0.92rem;
   color: var(--text-main);
+  word-break: break-word;
 }
 
 .step-meta {
@@ -284,6 +304,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--success-color);
+  flex-shrink: 0;
 }
 
 .status-dot.inactive {
@@ -300,10 +321,12 @@
   border-radius: var(--radius-lg);
   padding: 14px;
   box-shadow: var(--shadow-soft);
+  min-width: 0;
 }
 
 .detail-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
@@ -314,12 +337,14 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
+  min-width: 0;
 }
 
 .detail-title {
   font-size: 1rem;
   font-weight: 800;
   color: var(--text-main);
+  word-break: break-word;
 }
 
 .detail-description {
@@ -340,6 +365,7 @@
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.16);
   transition: transform 200ms ease, background 200ms ease, box-shadow 200ms ease;
+  white-space: nowrap;
 }
 
 .btn-add-group-top:hover,
@@ -363,6 +389,7 @@
   padding: 10px 12px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
   transition: all 0.2s ease;
+  min-width: 0;
 }
 
 .group-card:hover {
@@ -377,22 +404,26 @@
 
 .group-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
   cursor: pointer;
+  gap: 6px;
 }
 
 .group-header-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .group-title {
   font-weight: 700;
   font-size: 0.92rem;
   color: var(--text-main);
+  word-break: break-word;
 }
 
 .group-count {
@@ -402,6 +433,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .chevron {
@@ -418,8 +450,15 @@
 }
 
 /* ===== TABLE ===== */
+/* The table itself can be wider than its card on small screens; scope the
+   scrollbar to the card instead of letting it escape to the page level. */
+.group-card {
+  overflow-x: auto;
+}
+
 .questions-table {
   width: 100%;
+  min-width: 480px; /* keeps columns legible; card scrolls locally if needed */
   border-collapse: separate;
   border-spacing: 0;
   margin-bottom: 10px;
@@ -481,6 +520,7 @@
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .status-badge.inactive {
@@ -504,6 +544,7 @@
 .actions-cell {
   display: flex;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .icon-btn {
@@ -580,6 +621,7 @@
 .settings-panel-slot {
   position: sticky;
   top: 18px;
+  min-width: 0;
 }
 
 .questions-table tbody tr {
@@ -592,4 +634,108 @@
 
 .questions-table tbody tr.row-selected td {
   color: var(--text-main);
+}
+
+/* ===========================================================
+   RESPONSIVE BREAKPOINTS
+   =========================================================== */
+
+/* Large tablets / small laptops: narrow the 3rd column a bit,
+   let the middle column keep shrinking gracefully. */
+@media (max-width: 1200px) {
+  .main-layout {
+    grid-template-columns: minmax(200px, 24%) minmax(0, 1fr) minmax(260px, 300px);
+  }
+}
+
+/* Tablets: drop the 3-column layout to 2 rows —
+   steps + detail side by side on top, settings panel full width below. */
+@media (max-width: 992px) {
+  .main-layout {
+    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+    grid-template-areas:
+      "steps detail"
+      "settings settings";
+  }
+
+  .steps-panel { grid-area: steps; }
+  .detail-panel { grid-area: detail; }
+  .settings-panel-slot {
+    grid-area: settings;
+    position: static; /* sticky doesn't make sense once it's a full-width row */
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Small tablets / large phones: stack everything into a single column. */
+@media (max-width: 700px) {
+  .dashboard-container {
+    padding: 14px 16px;
+  }
+
+  .main-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "steps"
+      "detail"
+      "settings";
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-meta {
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-header-outline {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Phones: single-column stat cards, tighter spacing, buttons full width. */
+@media (max-width: 480px) {
+  .dashboard-title {
+    font-size: 1.25rem;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-add-group-top {
+    width: 100%;
+  }
+
+  .panel-header {
+    align-items: flex-start;
+  }
+
+  .group-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .questions-table {
+    min-width: 420px;
+  }
 }

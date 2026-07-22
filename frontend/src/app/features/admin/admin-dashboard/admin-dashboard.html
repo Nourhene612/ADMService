@@ -97,7 +97,7 @@
       </div>
 
       <div
-        *ngFor="let step of stepsMeta"
+        *ngFor="let step of stepsMeta; trackBy: trackBySection"
         class="step-item"
         [class.active]="step.sectionKey === currentSection"
         (click)="selectSection(step.sectionKey)">
@@ -127,7 +127,7 @@
         <button class="btn-add-group-top" (click)="openAddGroup()" [disabled]="!currentSection">+ Add Group</button>
       </div>
 
-      <div *ngFor="let group of currentSectionGroups" class="group-card" [class.group-open]="group.expanded">
+      <div *ngFor="let group of currentSectionGroups; trackBy: trackBySubsection"  class="group-card" [class.group-open]="group.expanded">
         <div class="group-header" (click)="toggleGroup(group.subsectionKey)">
           <div class="group-header-left">
             <span class="chevron" [class.expanded]="group.expanded">❯</span>
@@ -149,7 +149,7 @@
             </thead>
             <tbody>
               <tr
-                *ngFor="let q of group.questions"
+                *ngFor="let q of group.questions; trackBy: trackByUid"
                 [class.row-selected]="selectedQuestion?.uid === q.uid"
                 (click)="selectQuestion(q)">
                 <td>{{ q.question_text }}</td>

@@ -66,20 +66,22 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadGroupedQuestions(): void {
-    this.questionService.getGroupedQuestions().subscribe({
-      next: (data) => {
+  this.questionService.getGroupedQuestions().subscribe({
+    next: (data) => {
+      setTimeout(() => {
         this.groupedQuestions = data;
         this.sections = Object.keys(data);
         if (this.sections.length && !this.sections.includes(this.currentSection)) {
           this.currentSection = this.sections[0];
         }
-        this.lastUpdated = new Date(); 
+        this.lastUpdated = new Date();
         this.syncExpandedGroupForCurrentSection();
         this.refreshSelectedQuestionAfterReload();
         this.cdr.detectChanges();
-      },
-    });
-  }
+      });
+    },
+  });
+}
 
   selectSection(section: string): void {
     this.currentSection = section;
@@ -297,4 +299,16 @@ export class AdminDashboardComponent implements OnInit {
   openPreview(): void {
   window.open('/user', '_blank');
 }
+trackByUid(index: number, q: Question): string {
+  return q.uid;
+}
+
+trackBySection(index: number, s: StepMeta): string {
+  return s.sectionKey;
+}
+
+trackBySubsection(index: number, g: SubsectionGroup): string {
+  return g.subsectionKey;
+}
+
 }

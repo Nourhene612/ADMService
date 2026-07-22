@@ -4,7 +4,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { finalize } from 'rxjs/operators';
 import { QuestionService, Question } from 'src/app/services';
 
-const CHOICE_TYPES = ['select', 'multi_select', 'searchable_multi_select', 'radio', 'checkbox'];
+const CHOICE_TYPES = ['select', 'multi_select',  'radio', 'checkbox'];
 
 export interface FieldTypeOption {
   value: string;
@@ -31,17 +31,17 @@ export class QuestionSettingsComponent implements OnChanges {
   isSubmitting = false;
 
   fieldTypes: FieldTypeOption[] = [
-    { value: 'text', label: 'Text' },
-    { value: 'textarea', label: 'Textarea' },
-    { value: 'number', label: 'Number' },
-    { value: 'boolean', label: 'Boolean' },
-    { value: 'select', label: 'Single Select' },
-    { value: 'multi_select', label: 'Multi Select' },
-    { value: 'searchable_multi_select', label: 'Searchable Multi Select' },
-    { value: 'date', label: 'Date' },
-    { value: 'object', label: 'Object' },
-    { value: 'list', label: 'List' },
-  ];
+  { value: 'text', label: 'Text' },
+  { value: 'textarea', label: 'Text area' },
+  { value: 'number', label: 'Number' },
+  { value: 'date', label: 'Date' },
+  { value: 'datetime', label: 'Date & time' },
+  { value: 'select', label: 'Select' },
+  { value: 'multi_select', label: 'Multi select' },
+  { value: 'radio', label: 'Radio' },
+  { value: 'checkbox', label: 'Checkbox' },
+  
+];
 
   constructor(
     private fb: FormBuilder,
@@ -174,8 +174,7 @@ export class QuestionSettingsComponent implements OnChanges {
       is_active: Boolean(formValue.is_active),
       score_weight: Number(formValue.weight ?? 0),
       allow_other: Boolean(formValue.allow_other),
-      created_by: 'frontend',
-      updated_by: 'frontend',
+      
     };
 
     const editing = this.question;

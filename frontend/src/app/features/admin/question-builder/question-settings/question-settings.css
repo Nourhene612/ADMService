@@ -12,6 +12,8 @@
 }
 .settings-panel {
   width: 100%;
+  max-width: 100%;
+  min-width: 0; /* 🔥 CRITIQUE */
   height: 100%;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -340,6 +342,8 @@
 
 .settings-empty {
   width: 100%;
+  max-width: 100%;
+  min-width: 0; 
   height: 100%;
   display: flex;
   align-items: center;
@@ -423,6 +427,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100%;
 }
 
 .field-group {
@@ -621,11 +626,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
+  margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid #e2e8f0;
   flex-wrap: wrap;
   gap: 12px;
+
 }
 
 .footer-right {

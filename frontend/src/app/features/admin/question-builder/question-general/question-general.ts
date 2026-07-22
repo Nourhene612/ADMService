@@ -23,14 +23,13 @@ export class QuestionGeneralComponent {
     { value: 'text', label: 'Text' },
   { value: 'textarea', label: 'Text area' },
   { value: 'number', label: 'Number' },
-  { value: 'boolean', label: 'Boolean' },
   { value: 'date', label: 'Date' },
   { value: 'datetime', label: 'Date & time' },
   { value: 'select', label: 'Select' },
   { value: 'multi_select', label: 'Multi select' },
   { value: 'radio', label: 'Radio' },
   { value: 'checkbox', label: 'Checkbox' },
-  { value: 'file', label: 'File' }
+  
   ];
 
   get options(): FormArray {
