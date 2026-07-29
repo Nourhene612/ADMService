@@ -1,5 +1,5 @@
 /* ============================================================
-   QUESTION SETTINGS PANEL
+   QUESTION SETTINGS
    ============================================================ */
 :host {
   display: block;
@@ -1088,4 +1088,69 @@
   color: #64748b;
   font-size: 14px;
   margin: 0;
+} 
+
+/* ---------- Section de visibilité conditionnelle ---------- */
+
+.visibility-section {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
+.visibility-condition-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-left: 2px;
+  padding-left: 14px;
+  border-left: 2px solid #dbeafe;
+  margin-top: 4px;
+}
+
+.field-hint {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+  line-height: 1.4;
+} 
+
+/* ---------- Liste d'options : n'affiche que ~2 options, scroll pour le reste ---------- */
+.options-list {
+  max-height: 90px;   /* = hauteur exacte de 2 option-row (38px + 8px marge + 38px) */
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-top: 4px;
+}
+
+.options-list .option-row {
+  margin-top: 8px;
+}
+
+.options-list .option-row:first-child {
+  margin-top: 0;
+}
+
+/* Scrollbar discrète */
+.options-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.options-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.options-list::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 999px;
+}
+
+.options-list::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+.options-list {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }

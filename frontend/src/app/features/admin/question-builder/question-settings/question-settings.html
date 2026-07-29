@@ -56,27 +56,21 @@
     </div>
 
     <div class="field-group" *ngIf="isChoiceType">
-      <div class="options-header">
-        <label class="field-label">Options</label>
-        <button type="button" class="btn-add-option" (click)="addOption()">+ Add Option</button>
-      </div>
+  <div class="options-header">
+    <label class="field-label">Options</label>
+    <button type="button" class="btn-add-option" (click)="addOption()">+ Add Option</button>
+  </div>
 
-      <div class="option-row" *ngFor="let opt of options.controls; let i = index" [formGroup]="form">
-        <span class="drag-handle">⋮⋮</span>
-        <input type="text" [formControl]="$any(opt)" class="option-input" />
-        <button type="button" class="icon-btn" title="Delete" (click)="removeOption(i)">🗑</button>
-      </div>
+  <div class="options-list">
+    <div class="option-row" *ngFor="let opt of options.controls; let i = index" [formGroup]="form">
+      <span class="drag-handle">⋮⋮</span>
+      <input type="text" [formControl]="$any(opt)" class="option-input" />
+      <button type="button" class="icon-btn" title="Delete" (click)="removeOption(i)">🗑</button>
     </div>
+  </div>
+</div>
 
-    <div class="toggle-row" *ngIf="isChoiceType">
-      <div class="toggle-item">
-        <span class="toggle-label">Allow "Other" option</span>
-        <label class="switch">
-          <input type="checkbox" formControlName="allow_other" />
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
+   
 
     <div class="field-group">
       <label class="field-label">Display Order</label>
@@ -86,7 +80,45 @@
     <div class="field-group">
       <label class="field-label">Placeholder</label>
       <input type="text" formControlName="placeholder" placeholder="Input placeholder..." class="field-input" />
+    </div> 
+    <div class="field-group visibility-section">
+  <div class="toggle-item">
+    <span class="toggle-label">Conditional visibility</span>
+    <label class="switch">
+      <input type="checkbox" [checked]="visibilityEnabled" (change)="onToggleVisibility($event)" />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <ng-container *ngIf="visibilityEnabled" [formGroup]="visibilityGroup">
+    <div class="visibility-condition-fields">
+      <div class="field-group">
+        <label class="field-label">Depends on question</label>
+        <select formControlName="question_ref" class="field-select">
+          <option [ngValue]="null">Select a question…</option>
+          <option *ngFor="let q of availableQuestions" [value]="q.question_ref">
+            {{ q.question_ref }} — {{ q.question_text }}
+          </option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Operator</label>
+        <select formControlName="operator" class="field-select">
+          <option *ngFor="let op of conditionOperators" [value]="op.value">{{ op.label }}</option>
+        </select>
+      </div>
+
+      <div class="field-group" *ngIf="conditionNeedsValue">
+        <label class="field-label">Value</label>
+        <input type="text" formControlName="value" class="field-input"
+               placeholder="Expected answer value..." />
+        <span class="field-hint" *ngIf="conditionIsListOperator">
+          For multiple values, separate with commas (e.g. No, Planned)
+        </span>
+      </div>
     </div>
+  </ng-container>
 
     <div class="settings-footer">
       <button
@@ -103,11 +135,15 @@
           {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Save changes' : 'Save question') }}
         </button>
       </div>
-    </div>
+    </div> 
+    
+</div> 
 
-  </form>
+
+  </form> 
 </div>
 
 <div class="settings-empty" *ngIf="!form">
   <p>Select a question to edit its settings.</p>
-</div>
+</div>  
+

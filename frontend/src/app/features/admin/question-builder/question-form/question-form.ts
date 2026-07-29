@@ -19,12 +19,29 @@ export class QuestionFormComponent implements OnInit, OnChanges {
   @Input() prefilledSubsection = '';
   @Input() isNewGroup = false;
   @Input() editingQuestion: Question | null = null;
+  @Input() allQuestions: Question[] = []; // Nouvel input pour toutes les questions disponibles
 
   @Output() closeRequested = new EventEmitter<void>();
   @Output() questionSaved = new EventEmitter<void>();
 
   questionForm!: FormGroup;
   isSubmitting = false;
+
+  // Nouvelle propriété pour les questions disponibles dans le dropdown
+  get availableQuestionsForDropdown() {
+    if (!this.allQuestions || this.allQuestions.length === 0) {
+      return [];
+    }
+    
+    // Exclure la question en cours d'édition si elle existe
+    const currentRef = this.editingQuestion?.question_ref;
+    return this.allQuestions
+      .filter(q => q.question_ref !== currentRef)
+      .map(q => ({
+        question_ref: q.question_ref,
+        question_text: q.question_text
+      }));
+  }
 
   get isEditMode(): boolean {
     return !!this.editingQuestion;
@@ -43,7 +60,7 @@ export class QuestionFormComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.questionForm) return;
-    if (changes['editingQuestion']) {
+    if (changes['editingQuestion'] || changes['allQuestions']) {
       this.applyInitialValues();
     }
   }
@@ -62,7 +79,13 @@ export class QuestionFormComponent implements OnInit, OnChanges {
       weight: [0],
       active: [true],
       required: [false],
-      options: this.fb.array([])
+      options: this.fb.array([]),
+      // Ajout du groupe de visibilité conditionnelle
+      visibility_condition: this.fb.group({
+        question_ref: [null],
+        operator: ['equals'],
+        value: ['']
+      })
     });
   }
 
@@ -90,6 +113,20 @@ export class QuestionFormComponent implements OnInit, OnChanges {
         active: q.is_active,
         required: q.is_required
       });
+
+      // Remplir la condition de visibilité si elle existe
+      const visibilityCondition = (q as any).visibility_condition_json;
+      if (visibilityCondition) {
+        this.questionForm.patchValue({
+          visibility_condition: {
+            question_ref: visibilityCondition.question_ref,
+            operator: visibilityCondition.operator,
+            value: Array.isArray(visibilityCondition.value) 
+              ? visibilityCondition.value.join(', ') 
+              : (visibilityCondition.value ?? '')
+          }
+        });
+      }
 
       const existingOptions = (q as any).answer_options_json;
       this.setOptions(Array.isArray(existingOptions) ? existingOptions : []);
@@ -120,6 +157,16 @@ export class QuestionFormComponent implements OnInit, OnChanges {
       ? formValue.options.filter((o: string) => o?.trim()).map((o: string) => o.trim())
       : null;
 
+    // Récupérer la condition de visibilité
+    const visibilityCondition = formValue.visibility_condition;
+    const visibilityPayload = (visibilityCondition?.question_ref && visibilityCondition.question_ref.trim()) 
+      ? {
+          question_ref: visibilityCondition.question_ref.trim(),
+          operator: visibilityCondition.operator || 'equals',
+          value: this.parseVisibilityValue(visibilityCondition.value, visibilityCondition.operator)
+        }
+      : null;
+
     const payload = {
       question_ref: formValue.question_ref?.trim(),
       question_text: formValue.question_text?.trim(),
@@ -134,6 +181,7 @@ export class QuestionFormComponent implements OnInit, OnChanges {
       is_required: Boolean(formValue.required),
       is_active: Boolean(formValue.active),
       score_weight: Number(formValue.weight ?? 0),
+      visibility_condition_json: visibilityPayload,
       created_by: 'frontend',
       updated_by: 'frontend'
     };
@@ -155,6 +203,21 @@ export class QuestionFormComponent implements OnInit, OnChanges {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // Méthode utilitaire pour parser la valeur de la condition
+  private parseVisibilityValue(value: any, operator: string): string | string[] | null {
+    if (!value) return null;
+    
+    const trimmed = typeof value === 'string' ? value.trim() : value;
+    if (!trimmed) return null;
+
+    const listOperators = ['in', 'not_in', 'includes', 'not_includes'];
+    if (listOperators.includes(operator)) {
+      return trimmed.split(',').map((v: string) => v.trim()).filter(Boolean);
+    }
+    
+    return trimmed;
   }
 
   cancel(): void {

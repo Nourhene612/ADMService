@@ -21,13 +21,6 @@ class AnswerType(str, Enum):
     MULTI_SELECT = "multi_select"  # multiple choices from options
     RADIO = "radio"
     CHECKBOX = "checkbox"
-    FILE = "file"
-
-
-# ---------------------------------------------------------------------------
-# 2. answer_options_json -> List[AnswerOption]
-#    Used by SELECT / MULTI_SELECT / RADIO / CHECKBOX
-# ---------------------------------------------------------------------------
 
 
 
@@ -35,10 +28,10 @@ class AnswerType(str, Enum):
 # 3. answer_unit_json -> AnswerUnit
 #    Used by NUMBER (and could extend to DATE ranges etc.)
 # ---------------------------------------------------------------------------
-class AnswerUnit(BaseModel):
-    unit_label: str                     # e.g. "kg", "years", "%"
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
+#class AnswerUnit(BaseModel):
+    #unit_label: str                     # e.g. "kg", "years", "%"
+    #min_value: Optional[float] = None
+    #max_value: Optional[float] = None
     
 
 
@@ -47,63 +40,29 @@ class AnswerUnit(BaseModel):
 #    dependency_json and visibility_condition_json
 # ---------------------------------------------------------------------------
 class ConditionOperator(str, Enum):
-    EQUALS = "eq"
-    NOT_EQUALS = "neq"
+    EQUALS = "equals"
+    NOT_EQUALS = "not_equals"
     GREATER_THAN = "gt"
     LESS_THAN = "lt"
     GREATER_OR_EQUAL = "gte"
     LESS_OR_EQUAL = "lte"
     IN = "in"
     NOT_IN = "not_in"
-    CONTAINS = "contains"
+    INCLUDES = "includes"          # for multi_select fields: value is present
+    NOT_INCLUDES = "not_includes"  # for multi_select fields: value is absent
     IS_EMPTY = "is_empty"
     IS_NOT_EMPTY = "is_not_empty"
 
 
-class LogicalOperator(str, Enum):
-    AND = "and"
-    OR = "or"
 
-
-class ConditionRule(BaseModel):
-    question_ref: str  # the OTHER question this rule reads from
+class SimpleCondition(BaseModel):
+    question_ref: str  # the OTHER question this condition reads from
     operator: ConditionOperator
     value: Optional[Union[str, float, bool, List[str]]] = None
 
 
-class ConditionGroup(BaseModel):
-    """A group of rules combined with AND/OR — supports nested groups
-    so you can express e.g. (A AND B) OR C."""
-    logic: LogicalOperator = LogicalOperator.AND
-    rules: List[ConditionRule] = Field(default_factory=list)
-    groups: List["ConditionGroup"] = Field(default_factory=list)
-
-
-ConditionGroup.model_rebuild()  # needed because of the self-reference
-
-
-# ---------------------------------------------------------------------------
-# 5. dependency_json -> DependencyConfig
-#    "this question only makes sense / is required / is enabled when ..."
-# ---------------------------------------------------------------------------
-class DependencyAction(str, Enum):
-    SHOW = "show"
-    HIDE = "hide"
-    REQUIRE = "require"
-    DISABLE = "disable"
-
-
-class DependencyConfig(BaseModel):
-    condition: ConditionGroup
-    action: DependencyAction = DependencyAction.SHOW
-
-
-# ---------------------------------------------------------------------------
-# 6. visibility_condition_json -> just reuse ConditionGroup directly
-#    (kept as a separate alias so the field name in the model stays
-#    self-documenting even though it's structurally the same thing)
-# ---------------------------------------------------------------------------
-VisibilityCondition = ConditionGroup
+DependencyConfig = SimpleCondition
+VisibilityCondition = SimpleCondition
 
 
 # ---------------------------------------------------------------------------
@@ -116,7 +75,7 @@ class ValidationRules(BaseModel):
     max_value: Optional[float] = None
     regex_pattern: Optional[str] = None
     regex_error_message: Optional[str] = None
-    required_if: Optional[ConditionGroup] = None
+    required_if: Optional[SimpleCondition] = None
 
 
 # ---------------------------------------------------------------------------
@@ -142,7 +101,7 @@ class AdmAssessmentQuestionBase(BaseModel):
     answer_condition: Optional[str] = None
 
     answer_options_json: Optional[List[str]] = None
-    answer_unit_json: Optional[AnswerUnit] = None
+    answer_unit_json: Optional[List[str]] = None
     dependency_json: Optional[DependencyConfig] = None
 
     input_placeholder: Optional[str] = None

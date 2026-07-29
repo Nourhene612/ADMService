@@ -4,7 +4,11 @@
     <!-- CONFIGURATION PRINCIPALE -->
     <div class="main-grid">
       <div style="display: flex; flex-direction: column; gap: 24px;">
-        <app-question-general [form]="questionForm"></app-question-general>
+        <app-question-general
+    [form]="questionForm"
+    [availableQuestions]="availableQuestionsForDropdown"
+    [question]="editingQuestion">
+  </app-question-general>
       </div>
     </div>
 

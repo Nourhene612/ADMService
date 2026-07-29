@@ -44,6 +44,7 @@ export class AdminDashboardComponent implements OnInit {
   selectedQuestion: Question | null = null;
   settingsSection = '';
   settingsSubsection = '';
+  allQuestions: Question[] = [];
 
   // --- Popup de confirmation (delete/deactivate) ---
   modalOpenSubject = new BehaviorSubject<boolean>(false);
@@ -66,22 +67,28 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadGroupedQuestions(): void {
-  this.questionService.getGroupedQuestions().subscribe({
-    next: (data) => {
-      setTimeout(() => {
-        this.groupedQuestions = data;
-        this.sections = Object.keys(data);
-        if (this.sections.length && !this.sections.includes(this.currentSection)) {
-          this.currentSection = this.sections[0];
-        }
-        this.lastUpdated = new Date();
-        this.syncExpandedGroupForCurrentSection();
-        this.refreshSelectedQuestionAfterReload();
-        this.cdr.detectChanges();
-      });
-    },
-  });
-}
+    this.questionService.getGroupedQuestions().subscribe({
+      next: (data) => {
+        setTimeout(() => {
+          this.groupedQuestions = data;
+          this.allQuestions = Object.values(data).flatMap((subsections) =>
+            Object.values(subsections).flat()
+          );
+          this.sections = Object.keys(data);
+          if (this.sections.length && !this.sections.includes(this.currentSection)) {
+            this.currentSection = this.sections[0];
+          }
+          this.lastUpdated = new Date();
+          this.syncExpandedGroupForCurrentSection();
+          this.refreshSelectedQuestionAfterReload();
+          this.cdr.detectChanges();
+        }, 0);
+      },
+      error: (err) => {
+        console.error('Failed to load grouped questions', err);
+      },
+    });
+  }
 
   selectSection(section: string): void {
     this.currentSection = section;
