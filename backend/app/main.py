@@ -1,10 +1,10 @@
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.models.database import Base, engine
-from app.routes import admin , answer , customer , question , sessions 
-# Import tes routes ici (exemple)
-# from app.routes import users
+from app.routes import admin , answer , customer , question , sessions , suggestion
+
 
 app = FastAPI(
     title="Vision ADM Assessment API",
@@ -38,3 +38,4 @@ app.include_router(answer.router, prefix="/api/adm-assessment")
 app.include_router(customer.router, prefix="/api/adm-assessment")
 app.include_router(question.router, prefix="/api/adm-assessment")
 app.include_router(sessions.router, prefix="/api/adm-assessment")
+app.include_router(suggestion.router, prefix="/api/adm-assessment")

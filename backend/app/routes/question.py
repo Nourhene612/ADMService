@@ -107,11 +107,17 @@ def get_questions_for_session(
     # Vérifie que la session existe
     get_session_or_404(db, session_uid)
 
-    # Récupère uniquement les questions visibles
-    visible_questions = form_service.get_visible_questions_for_session(db, session_uid)
+    # Récupère toutes les questions actives de la session,
+    # en conservant l'état is_visible pour chaque question.
+    all_questions = form_service.get_questions_for_session(db, session_uid)
 
-    # Formate la réponse
+    # Aplatit le grouping en une liste de questions
+    questions = []
+    for section_questions in all_questions.values():
+        for subsection_questions in section_questions.values():
+            questions.extend(subsection_questions)
+
     return QuestionsForSessionResponse(
         session_uid=session_uid,
-        questions=visible_questions,
+        questions=questions,
     )
