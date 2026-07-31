@@ -5,22 +5,26 @@
     <h1 class="dashboard-title">ADM Assessment Management</h1>
     <p class="dashboard-subtitle">Manage ADM assessment steps, question groups, and questions.</p>
   </div> 
-  <div class="header-meta" *ngIf="lastUpdated">
-    <div class="meta-label">Last updated</div>
-    <div class="meta-value" *ngIf="lastUpdated">
-  {{ lastUpdated | date:'MMM d, y h:mm a' }}
-</div>
-  </div>
+  
 
   <div class="header-actions">
-    <button class="btn-header-outline" (click)="openPreview()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-      </svg>
-      Preview
-    </button>
+  <div class="meta-value" *ngIf="lastUpdated">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+    </svg>
+    {{ lastUpdated | date:'MMM d, y h:mm a' }}
   </div>
+  <button class="btn-header-outline" (click)="openPreview()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+    Preview
+  </button>
+</div>
 </div>
 
   <div class="stats-row">
@@ -153,7 +157,7 @@
                 [class.row-selected]="selectedQuestion?.uid === q.uid"
                 (click)="selectQuestion(q)">
                 <td>{{ q.question_text }}</td>
-                <td>{{ q.answer_type }}</td>
+                <td><span class="type-badge" [ngClass]="'type-' + q.answer_type">{{ q.answer_type }}</span></td>
                 <td><span class="check-badge" *ngIf="q.is_required">✓</span></td>
                 <td>
                   <span class="status-badge" [class.inactive]="!q.is_active">
@@ -190,7 +194,7 @@
       [prefilledSection]="settingsSection"
       [prefilledSubsection]="settingsSubsection"
       (closeRequested)="closeSettingsPanel()"
-      (saved)="onSettingsSaved()"
+      (saved)="onSettingsSaved($event)"
       (deleteRequested)="onDeleteRequestedFromSettings($event)">
     </app-question-settings>
 

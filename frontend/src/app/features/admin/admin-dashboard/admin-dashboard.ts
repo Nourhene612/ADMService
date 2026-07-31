@@ -135,6 +135,23 @@ export class AdminDashboardComponent implements OnInit {
       this.autoSelectFirstQuestion();
     }
   }
+  private applyQuestionUpdate(updated: Question): void {
+  const section = this.groupedQuestions[updated.section_key];
+  const list = section?.[updated.subsection_key];
+
+  if (list) {
+    const idx = list.findIndex(q => q.uid === updated.uid);
+    if (idx > -1) {
+      list[idx] = updated;
+    } else {
+      list.push(updated);
+    }
+  }
+
+  this.selectedQuestion = updated;
+  this.allQuestions = Object.values(this.groupedQuestions).flatMap(s => Object.values(s).flat());
+  this.cdr.detectChanges();
+}
 
   get stepsMeta(): StepMeta[] {
     return this.sections.map(sectionKey => {
@@ -220,9 +237,10 @@ export class AdminDashboardComponent implements OnInit {
     this.settingsSubsection = '';
   }
 
-  onSettingsSaved(): void {
-    this.loadGroupedQuestions();
-  }
+  onSettingsSaved(updated: Question): void {
+  this.applyQuestionUpdate(updated);   // reflet immédiat à l'écran
+  this.loadGroupedQuestions();         // resynchro silencieuse avec le serveur
+}
 
   onDeleteRequestedFromSettings(q: Question): void {
     this.deleteQuestion(q);

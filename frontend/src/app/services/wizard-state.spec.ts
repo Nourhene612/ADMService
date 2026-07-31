@@ -4,11 +4,33 @@ import { WizardStateService } from './wizard-state';
 describe('WizardStateService', () => {
   let service: WizardStateService;
 
+  function createSpy(name: string) {
+    return jasmine.createSpy(name);
+  }
+
   beforeEach(() => {
+    const sessionQuestionService = {
+      getQuestionsForSession: createSpy('getQuestionsForSession'),
+      groupQuestions: (questions: any[]) => {
+        const grouped: Record<string, Record<string, any[]>> = {};
+        const sorted = [...questions].sort((a, b) => a.display_order - b.display_order);
+
+        for (const question of sorted) {
+          const section = question.section_key;
+          const subsection = question.subsection_key || 'default';
+          grouped[section] ??= {};
+          grouped[section][subsection] ??= [];
+          grouped[section][subsection].push(question);
+        }
+
+        return grouped;
+      },
+    } as any;
+
     service = new WizardStateService(
-      { start: jasmine.createSpy('start'), get: jasmine.createSpy('get'), getProgress: jasmine.createSpy('getProgress'), saveDraft: jasmine.createSpy('saveDraft'), submit: jasmine.createSpy('submit'), cancel: jasmine.createSpy('cancel') } as any,
-      { getQuestionsForSession: jasmine.createSpy('getQuestionsForSession') } as any,
-      { bulkUpsert: jasmine.createSpy('bulkUpsert') } as any
+      { start: createSpy('start'), get: createSpy('get'), getProgress: createSpy('getProgress'), saveDraft: createSpy('saveDraft'), submit: createSpy('submit'), cancel: createSpy('cancel') } as any,
+      sessionQuestionService,
+      { bulkUpsert: createSpy('bulkUpsert') } as any
     );
   });
 
@@ -100,5 +122,64 @@ describe('WizardStateService', () => {
 
     expect(canSubmit).toBeTruthy();
     expect(missing).toEqual([]);
+  });
+
+  it('recomputes conditional visibility immediately from local answers without saveDraft', () => {
+    (service as any).sessionSubject.next({
+      uid: 'session-1',
+      status: AdmAssessmentSessionStatus.Draft,
+      progress_percentage: 0,
+      started_at: '',
+      updated_at: '',
+    });
+
+    (service as any).questionsSubject.next([
+      {
+        uid: 'q-trigger',
+        question_ref: 'trigger',
+        question_text: 'Trigger question',
+        section_key: 'scope',
+        subsection_key: 'context',
+        display_order: 1,
+        answer_type: 'text',
+        is_required: false,
+        version: 1,
+        created_at: '',
+        updated_at: '',
+        is_visible: true,
+        is_enabled: true,
+        is_required_by_dependency: false,
+      },
+      {
+        uid: 'q-dependent',
+        question_ref: 'dependent',
+        question_text: 'Dependent question',
+        section_key: 'scope',
+        subsection_key: 'context',
+        display_order: 2,
+        answer_type: 'text',
+        is_required: false,
+        version: 1,
+        created_at: '',
+        updated_at: '',
+        is_visible: false,
+        is_enabled: true,
+        is_required_by_dependency: false,
+        visibility_condition_json: { question_ref: 'trigger', operator: 'equals', value: 'show' },
+      },
+    ]);
+
+    let visibleQuestionUids: string[] = [];
+    service.groupedQuestions$.subscribe((grouped) => {
+      visibleQuestionUids = Object.values(grouped)
+        .flatMap((subsection) => Object.values(subsection))
+        .flat()
+        .filter((question: any) => question.is_visible)
+        .map((question: any) => question.uid);
+    });
+
+    service.setAnswerValue('q-trigger', { response_string: 'show' });
+
+    expect(visibleQuestionUids).toContain('q-dependent');
   });
 });

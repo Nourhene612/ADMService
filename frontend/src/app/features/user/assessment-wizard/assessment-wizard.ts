@@ -122,17 +122,14 @@ export class AssessmentWizardComponent implements OnInit {
     const submittedBy = 'demo-customer';
     this.canSubmit$.pipe(take(1)).subscribe((canSubmit) => {
        
-      if (!canSubmit) {
-        this.missingRequiredQuestions$.pipe(take(1)).subscribe((questions) => {
-          const missingList = questions.map((question) => question.question_text).join('\n');
-          this.openModal(
-            'Required questions missing',
-            `Please complete the following required questions:\n${missingList}`,
-            'warning'
-          );
-        });
-        return;
-      }
+     if (!canSubmit) {
+  this.openModal(
+    'Required questions missing',
+    'Please complete all required questions before submitting.',
+    'warning'
+  );
+  return;
+}
       this.wizardState.submit(submittedBy).subscribe({
         next: () => this.openModal('Success', 'Your answer is submitted', 'success'),
         error: () =>
@@ -147,10 +144,10 @@ export class AssessmentWizardComponent implements OnInit {
   }
 
  closeModal(): void {
-  const wasSuccess = this.modalType === 'success';
+  const shouldRestart = this.modalType === 'success' || this.modalType === 'info';
   this.modalOpenSubject.next(false);
 
-  if (wasSuccess) {
+  if (shouldRestart) {
     this.wizardState.startNewSession('demo-customer', 'enterprise_adm');
   }
 }

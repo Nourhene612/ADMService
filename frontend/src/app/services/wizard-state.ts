@@ -20,6 +20,8 @@ import {
   AdmAssessmentAnswerBulkUpsertItem,
 } from 'src/app/services/adm-answer';
 
+import { evaluateVisibility } from 'src/app/services/visibility.utils';
+
 export interface LocalAnswerValue {
   response_string?: string | null;
   response_number?: number | null;
@@ -55,18 +57,78 @@ export class WizardStateService {
   currentStepIndex$ = this.currentStepIndexSubject.asObservable();
   loading$ = this.loadingSubject.asObservable();
   error$ = this.errorSubject.asObservable();
-  canSubmit$: Observable<boolean> = combineLatest([this.questions$, this.validationTriggerSubject.asObservable()]).pipe(
-    map(([questions]) => this.computeCanSubmit(questions))
-  );
-  missingRequiredQuestions$: Observable<SessionQuestion[]> = combineLatest([
+
+  // Reconstruit answers_by_question_ref à partir de answersMap (state local),
+  // en respectant le même ordre de priorité que le backend
+  // (string > number > boolean > list_json)
+  private buildAnswersByQuestionRef(): Record<string, any> {
+    const result: Record<string, any> = {};
+    const questions = this.questionsSubject.value;
+
+    for (const q of questions) {
+      const value = this.answersMap.get(q.uid);
+      if (!value) continue;
+
+      if (value.response_string !== undefined && value.response_string !== null && value.response_string !== '') {
+        result[q.question_ref] = value.response_string;
+      } else if (value.response_number !== undefined && value.response_number !== null) {
+        result[q.question_ref] = value.response_number;
+      } else if (value.response_boolean !== undefined && value.response_boolean !== null) {
+        result[q.question_ref] = value.response_boolean;
+      } else if (value.response_list_json !== undefined && value.response_list_json !== null) {
+        result[q.question_ref] = value.response_list_json;
+      }
+    }
+
+    return result;
+  }
+
+  private applyVisibilityToQuestions(questions: SessionQuestion[]): SessionQuestion[] {
+    const answersByRef = this.buildAnswersByQuestionRef();
+    return questions.map((q) => ({
+      ...q,
+      is_visible: evaluateVisibility(q, answersByRef),
+    }));
+  }
+
+  private refreshVisibilityState(questionUid?: string, value?: LocalAnswerValue): void {
+    const questions = this.questionsSubject.value;
+    const visibleQuestions = this.applyVisibilityToQuestions(questions);
+    this.questionsSubject.next(visibleQuestions);
+    this.validationTriggerSubject.next(this.validationTriggerSubject.value + 1);
+
+    if (questionUid !== undefined) {
+      const answersByRef = this.buildAnswersByQuestionRef();
+      const currentAnswer = answersByRef[questions.find((q) => q.uid === questionUid)?.question_ref ?? ''];
+      console.log('[wizard-state] answer changed', {
+        questionUid,
+        value,
+        currentAnswer,
+        answersState: Array.from(this.answersMap.entries()),
+        answersByRef,
+        visibleQuestionUids: visibleQuestions.filter((q) => q.is_visible).map((q) => q.uid),
+      });
+    }
+  }
+
+  // Questions avec is_visible recalculé LOCALEMENT à chaque changement de réponse
+  visibleQuestions$: Observable<SessionQuestion[]> = combineLatest([
     this.questions$,
     this.validationTriggerSubject.asObservable(),
-  ]).pipe(map(([questions]) => this.computeMissingRequiredQuestions(questions)));
+  ]).pipe(
+    map(([questions]) => {
+      const answersByRef = this.buildAnswersByQuestionRef();
+      return questions.map((q) => ({
+        ...q,
+        is_visible: evaluateVisibility(q, answersByRef),
+      }));
+    })
+  );
 
-  steps$: Observable<string[]> = this.questions$.pipe(
+  steps$: Observable<string[]> = this.visibleQuestions$.pipe(
     map((questions) => {
       const seen = new Map<string, number>();
-      for (const q of questions) {
+      for (const q of questions.filter((q) => q.is_visible)) {
         if (!seen.has(q.section_key)) {
           seen.set(q.section_key, q.display_order);
         } else {
@@ -79,8 +141,8 @@ export class WizardStateService {
     })
   );
 
-  groupedQuestions$: Observable<GroupedSessionQuestions> = this.questions$.pipe(
-    map((questions) => this.sessionQuestionService.groupQuestions(questions))
+  groupedQuestions$: Observable<GroupedSessionQuestions> = this.visibleQuestions$.pipe(
+    map((questions) => this.sessionQuestionService.groupQuestions(questions.filter((q) => q.is_visible)))
   );
 
   currentStepGroups$: Observable<{ [subsectionKey: string]: SessionQuestion[] }> = combineLatest([
@@ -92,6 +154,14 @@ export class WizardStateService {
       const stepKey = steps[index];
       return stepKey ? grouped[stepKey] || {} : {};
     })
+  );
+
+  canSubmit$: Observable<boolean> = this.visibleQuestions$.pipe(
+    map((questions) => this.computeCanSubmit(questions))
+  );
+
+  missingRequiredQuestions$: Observable<SessionQuestion[]> = this.visibleQuestions$.pipe(
+    map((questions) => this.computeMissingRequiredQuestions(questions))
   );
 
   constructor(
@@ -174,9 +244,10 @@ export class WizardStateService {
     this.sessionQuestionService.getQuestionsForSession(sessionUid).subscribe({
       next: (res) => {
         this.answersMap.clear();
-        this.questionsSubject.next(res.questions);
+        const questionsWithVisibility = this.applyVisibilityToQuestions(res.questions);
+        this.questionsSubject.next(questionsWithVisibility);
 
-        for (const q of res.questions) {
+        for (const q of questionsWithVisibility) {
           if (q.current_answer) {
             this.answersMap.set(q.uid, {
               response_string: q.current_answer.response_string,
@@ -215,10 +286,11 @@ export class WizardStateService {
       return;
     }
     const existing = this.answersMap.get(questionUid);
-    this.answersMap.set(questionUid, { ...existing, ...value });
+    const updatedValue = { ...existing, ...value };
+    this.answersMap.set(questionUid, updatedValue);
     this.dirtyQuestionUids.add(questionUid);
-    this.validationTriggerSubject.next(this.validationTriggerSubject.value + 1);
-    console.log('DIRTY SET:', Array.from(this.dirtyQuestionUids)); 
+    this.refreshVisibilityState(questionUid, updatedValue);
+    console.log('DIRTY SET:', Array.from(this.dirtyQuestionUids));
   }
 
   // ======================================================

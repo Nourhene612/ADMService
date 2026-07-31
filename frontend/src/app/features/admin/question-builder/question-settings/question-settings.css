@@ -19,7 +19,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
-  padding: 22px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -30,11 +30,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .settings-title {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   color: #1e293b;
 }
@@ -43,8 +43,8 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 20px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
 }
 
 .settings-label-text {
@@ -72,7 +72,7 @@
 .field-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .field-label {
@@ -433,11 +433,11 @@
 .field-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
 
 .field-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #1e293b;
 }
@@ -446,9 +446,9 @@
 .field-select,
 .field-textarea,
 .option-input {
-  height: 38px;
+  height: 32px;
   padding: 0 12px;
-  font-size: 14px;
+  font-size: 13px;
   color: #1e293b;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -460,7 +460,7 @@
 
 .field-textarea {
   height: auto;
-  min-height: 72px;
+  min-height: 40px;
   padding: 10px 12px;
   resize: vertical;
   font-family: inherit;
@@ -627,7 +627,7 @@
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 16px;
+  padding-top: 8px;
   border-top: 1px solid #e2e8f0;
   flex-wrap: wrap;
   gap: 12px;
@@ -791,9 +791,10 @@
 
 /* ---------- Formulaire ---------- */
 .settings-form {
-  display: flex;
+  display: grid;
   flex-direction: column;
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .field-group {
@@ -1153,4 +1154,9 @@
 .options-list {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
+}
+.field-group:has(textarea),
+.visibility-section,
+.settings-footer {
+    grid-column: 1 / -1;
 }

@@ -63,7 +63,6 @@
 
   <div class="options-list">
     <div class="option-row" *ngFor="let opt of options.controls; let i = index" [formGroup]="form">
-      <span class="drag-handle">⋮⋮</span>
       <input type="text" [formControl]="$any(opt)" class="option-input" />
       <button type="button" class="icon-btn" title="Delete" (click)="removeOption(i)">🗑</button>
     </div>

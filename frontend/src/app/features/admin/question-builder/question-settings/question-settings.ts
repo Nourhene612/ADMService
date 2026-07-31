@@ -32,9 +32,9 @@ export class QuestionSettingsComponent implements OnChanges, OnInit, OnDestroy {
   @Input() availableQuestions: { question_ref: string; question_text: string }[] = [];
 
   @Output() closeRequested = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<void>();
+  @Output() saved = new EventEmitter<Question>();
   @Output() deleteRequested = new EventEmitter<Question>();
-
+  
   form!: FormGroup;
   isSubmitting = false;
 
@@ -371,17 +371,17 @@ export class QuestionSettingsComponent implements OnChanges, OnInit, OnDestroy {
         : this.questionService.createQuestion(payload);
 
     request$.pipe(finalize(() => {
-      this.isSubmitting = false;
-      this.cdr.detectChanges();
-    })).subscribe({
-      next: () => {
-        this.saved.emit();
-      },
-      error: (err) => {
-        console.error('Failed to save question', err);
-        this.cdr.detectChanges();
-      },
-    });
+  this.isSubmitting = false;
+  this.cdr.detectChanges();
+})).subscribe({
+  next: (savedQuestion: Question) => {
+    this.saved.emit(savedQuestion); // on émet la question retournée par l'API, pas juste un signal vide
+  },
+  error: (err) => {
+    console.error('Failed to save question', err);
+    this.cdr.detectChanges();
+  },
+});
   }
 
   onDelete(): void {

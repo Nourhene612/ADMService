@@ -365,3 +365,17 @@ textarea {
   font-size: 16px;
   color: var(--text-main);
 }
+.options-divider {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #888;
+  border-top: 1px solid #eee;
+  margin-top: 4px;
+}
+
+.option-row.ai-suggestion span {
+  font-style: italic;
+  color: #4a4a4a;
+}
