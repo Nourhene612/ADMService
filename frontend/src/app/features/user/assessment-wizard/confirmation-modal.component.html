@@ -1,11 +1,27 @@
 <div class="modal-overlay" *ngIf="isOpen$ | async" (click)="closeModal()">
   <div class="modal-card" [ngClass]="type" (click)="$event.stopPropagation()">
-    <button type="button" class="modal-close" (click)="closeModal()" aria-label="Close">×</button>
-    <div class="modal-icon" *ngIf="type === 'success'">✓</div>
-    <div class="modal-icon warning" *ngIf="type === 'warning'">!</div>
-    <div class="modal-icon info" *ngIf="type === 'info'">i</div>
+
+    <button type="button" class="modal-close" aria-label="Close" (click)="closeModal()">×</button>
+
     <h3>{{ title }}</h3>
     <p>{{ message }}</p>
-    <button type="button" class="btn-primary modal-action" (click)="closeModal()">OK</button>
+
+    <div class="modal-actions" *ngIf="buttons.length > 0">
+      <button
+        *ngFor="let btn of buttons"
+        type="button"
+        [ngClass]="getButtonClass(btn.class)"
+        (click)="onButtonClick(btn.action)"
+      >
+        {{ btn.label }}
+      </button>
+    </div>
+
+    <div class="modal-actions two-buttons" *ngIf="showTwoButtons && buttons.length === 0">
+      <button type="button" class="btn-cancel" (click)="onCancel()">{{ cancelLabel }}</button>
+      <button type="button" class="btn-confirm" [ngClass]="'btn-confirm-' + confirmButtonColor" (click)="onConfirm()">{{ confirmLabel }}</button>
+    </div>
+
+    <button type="button" class="btn-primary modal-action" (click)="closeModal()" *ngIf="!showTwoButtons && buttons.length === 0">OK</button>
   </div>
 </div>

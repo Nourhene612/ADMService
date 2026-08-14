@@ -1,6 +1,6 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy, HostListener } from '@angular/core';
+import { CommonModule, isPlatformBrowser, KeyValue } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 
@@ -11,7 +11,7 @@ import { SessionQuestion } from 'src/app/services/adm-session-question';
 import { WizardStepTabsComponent } from '../wizard-step-tabs/wizard-step-tabs';
 import { CompletionScoreComponent } from '../completion-score/completion-score';
 import { WizardGroupCardComponent } from '../wizard-group-card/wizard-group-card';
-import { ConfirmationModalComponent } from './confirmation-modal.component';
+import { ConfirmationModalComponent, ModalButton } from './confirmation-modal.component';
 
 @Component({
   selector: 'app-assessment-wizard',
@@ -26,8 +26,7 @@ import { ConfirmationModalComponent } from './confirmation-modal.component';
   templateUrl: './assessment-wizard.html',
   styleUrls: ['./assessment-wizard.css'],
 })
-export class AssessmentWizardComponent implements OnInit {
-  // Déclarées SANS initialiseur (pas de "= this.wizardState...." ici)
+export class AssessmentWizardComponent implements OnInit, OnDestroy {
   session$!: Observable<AdmAssessmentSessionRead | null>;
   steps$!: Observable<string[]>;
   currentStepIndex$!: Observable<number>;
@@ -36,18 +35,22 @@ export class AssessmentWizardComponent implements OnInit {
   error$!: Observable<string | null>;
   canSubmit$!: Observable<boolean>;
   missingRequiredQuestions$!: Observable<SessionQuestion[]>;
+  hasUnsavedChanges$!: Observable<boolean>;
 
   modalOpenSubject = new BehaviorSubject<boolean>(false);
   modalOpen$ = this.modalOpenSubject.asObservable();
   modalTitle = '';
   modalMessage = '';
   modalType: 'success' | 'warning' | 'info' = 'info';
+  modalButtons: ModalButton[] = [];
 
   private initialized = false;
+  private leaveConfirmationResolver: ((value: boolean) => void) | null = null;
 
   constructor(
     private wizardState: WizardStateService,
     private route: ActivatedRoute,
+    private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     // Assignation ICI, une fois wizardState correctement injecté
@@ -59,6 +62,7 @@ export class AssessmentWizardComponent implements OnInit {
     this.error$ = this.wizardState.error$;
     this.canSubmit$ = this.wizardState.canSubmit$;
     this.missingRequiredQuestions$ = this.wizardState.missingRequiredQuestions$;
+    this.hasUnsavedChanges$ = this.wizardState.hasUnsavedChanges$;
 
     this.session$.subscribe((session) => {
       if (!session) return;
@@ -89,6 +93,63 @@ export class AssessmentWizardComponent implements OnInit {
     }
   }
 
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.wizardState.hasUnsavedChanges()) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
+  ngOnDestroy(): void {
+    if (this.leaveConfirmationResolver) {
+      this.leaveConfirmationResolver(false);
+      this.leaveConfirmationResolver = null;
+    }
+  }
+
+  canDeactivate(): Observable<boolean> | Promise<boolean> | boolean {
+    if (!this.wizardState.hasUnsavedChanges()) {
+      return true;
+    }
+
+    this.confirmLeave();
+
+    return new Promise<boolean>((resolve) => {
+      this.leaveConfirmationResolver = resolve;
+    });
+  }
+
+  confirmLeave(): void {
+    this.modalTitle = 'Do you want to save your answers?';
+    this.modalMessage =
+      'You have unsaved answers. Would you like to save them as a draft before leaving this page?';
+    this.modalType = 'info';
+    this.modalButtons = [
+      { label: "Don't Save", action: 'dont-save' },
+      { label: 'Save', action: 'save-draft' },
+    ];
+    this.modalOpenSubject.next(true);
+  }
+
+  onModalButtonClick(action: string): void {
+    if (action === 'save-draft') {
+      this.wizardState.saveDraft();
+      this.hasUnsavedChanges$.pipe(take(1)).subscribe((hasUnsaved) => {
+        if (!hasUnsaved) {
+          this.closeModal();
+          this.resolveLeaveDecision(true);
+        }
+      });
+    } else if (action === 'dont-save') {
+      this.wizardState.reset();
+      this.closeModal();
+      this.resolveLeaveDecision(true);
+    }
+  }
+
   get isFirstStep(): boolean {
     return this.wizardState.isOnFirstStep();
   }
@@ -97,6 +158,10 @@ export class AssessmentWizardComponent implements OnInit {
   isLastStep(steps: string[] | null, currentIndex: number | null): boolean {
     if (!steps || currentIndex === null) return false;
     return currentIndex === steps.length - 1;
+  }
+
+  trackByGroupKey(index: number, entry: KeyValue<string, SessionQuestion[]>): string {
+    return entry.key;
   }
 
   onContinue(): void {
@@ -114,6 +179,11 @@ export class AssessmentWizardComponent implements OnInit {
     
     if (!this.wizardState.isSessionEditable()) return;
     this.wizardState.saveDraft();
+    this.hasUnsavedChanges$.pipe(take(1)).subscribe((hasUnsaved) => {
+      if (!hasUnsaved) {
+        this.openModal('Draft Saved', 'Your answers have been saved as a draft.', 'success');
+      }
+    });
   }
 
   onSubmit(): void {
@@ -147,14 +217,24 @@ export class AssessmentWizardComponent implements OnInit {
   const shouldRestart = this.modalType === 'success' || this.modalType === 'info';
   this.modalOpenSubject.next(false);
 
-  if (shouldRestart) {
+  if (shouldRestart && this.modalButtons.length === 0) {
+    // Only restart if not in unsaved changes flow
     this.wizardState.startNewSession('demo-customer', 'enterprise_adm');
   }
 }
+
+  private resolveLeaveDecision(shouldContinue: boolean): void {
+    if (this.leaveConfirmationResolver) {
+      this.leaveConfirmationResolver(shouldContinue);
+      this.leaveConfirmationResolver = null;
+    }
+  }
+
   private openModal(title: string, message: string, type: 'success' | 'warning' | 'info'): void {
     this.modalTitle = title;
     this.modalMessage = message;
     this.modalType = type;
+    this.modalButtons = [];
     
     this.modalOpenSubject.next(true);
   }

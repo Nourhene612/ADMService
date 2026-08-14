@@ -36,7 +36,7 @@
       <div class="wizard-groups-container">
         <div class="wizard-groups" *ngIf="currentStepGroups$ | async as groups">
           <app-wizard-group-card
-            *ngFor="let entry of groups | keyvalue"
+            *ngFor="let entry of groups | keyvalue; trackBy: trackByGroupKey"
             [subsectionKey]="entry.key"
             [questions]="entry.value"
           ></app-wizard-group-card>
@@ -88,8 +88,10 @@
       [title]="modalTitle"
       [message]="modalMessage"
       [type]="modalType"
+      [buttons]="modalButtons"
       [isOpen]="(modalOpen$ | async) ?? false"
       (close)="closeModal()"
+      (buttonClick)="onModalButtonClick($event)"
     ></app-confirmation-modal>
 
   </div>

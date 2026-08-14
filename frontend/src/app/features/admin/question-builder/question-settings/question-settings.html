@@ -130,7 +130,7 @@
       </button>
       <div class="footer-right">
         <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="isSubmitting">Cancel</button>
-        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+        <button type="button" class="btn-primary" (click)="save()" [disabled]="isSubmitting">
           {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Save changes' : 'Save question') }}
         </button>
       </div>
@@ -144,5 +144,19 @@
 
 <div class="settings-empty" *ngIf="!form">
   <p>Select a question to edit its settings.</p>
-</div>  
+</div>
 
+<!-- Confirmation Modal -->
+<app-confirmation-modal
+  [isOpen]="confirmationModalOpen"
+  [title]="confirmationModalTitle"
+  [message]="confirmationModalMessage"
+  [type]="'warning'"
+  [showTwoButtons]="true"
+  [cancelLabel]="'Cancel'"
+  [confirmLabel]="confirmationAction === 'delete' ? 'Confirm' : 'Save Changes'"
+  [confirmButtonColor]="'blue'"
+  (close)="onConfirmationCancel()"
+  (confirm)="onConfirmationConfirm()"
+  (cancel)="onConfirmationCancel()"
+></app-confirmation-modal>

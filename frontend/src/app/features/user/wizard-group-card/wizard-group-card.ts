@@ -1,3 +1,4 @@
+// wizard-group-card.ts
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SessionQuestion } from 'src/app/services/adm-session-question';
@@ -19,5 +20,9 @@ export class WizardGroupCardComponent {
       .split('_')
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
+  }
+
+  trackByQuestionUid(index: number, question: SessionQuestion): string {
+    return question.uid;
   }
 }

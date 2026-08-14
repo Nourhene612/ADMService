@@ -222,4 +222,19 @@
     [isOpen]="(modalOpen$ | async) ?? false"
     (close)="closeModal()">
   </app-confirmation-modal>
+
+  <!-- Confirmation Modal for Question Actions (Edit/Delete/Save) -->
+  <app-confirmation-modal
+    [title]="confirmationModalTitle"
+    [message]="confirmationModalMessage"
+    [type]="confirmationModalType"
+    [showTwoButtons]="true"
+    [cancelLabel]="confirmationModalCancelLabel"
+    [confirmLabel]="confirmationModalConfirmLabel"
+    [confirmButtonColor]="confirmationModalConfirmColor"
+    [isOpen]="confirmationModalOpen"
+    (close)="onConfirmationCancel()"
+    (confirm)="onConfirmationConfirm()"
+    (cancel)="onConfirmationCancel()">
+  </app-confirmation-modal>
 </div>

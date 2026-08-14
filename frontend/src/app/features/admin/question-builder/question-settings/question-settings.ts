@@ -4,6 +4,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Va
 import { BehaviorSubject, Subject, combineLatest, of } from 'rxjs';
 import { catchError, finalize, map, startWith, takeUntil } from 'rxjs/operators';
 import { QuestionService, Question } from 'src/app/services';
+import { ConfirmationModalComponent } from 'src/app/features/user/assessment-wizard/confirmation-modal.component';
 
 const CHOICE_TYPES = ['select', 'multi_select', 'radio', 'checkbox'];
 
@@ -21,7 +22,7 @@ interface VisibilityQuestionOption {
 @Component({
   selector: 'app-question-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationModalComponent],
   templateUrl: './question-settings.html',
   styleUrls: ['./question-settings.css'],
 })
@@ -42,6 +43,12 @@ export class QuestionSettingsComponent implements OnChanges, OnInit, OnDestroy {
   visibilityGroup!: FormGroup;
   visibilityQuestionSearchControl = new FormControl('', { nonNullable: true });
   visibilityQuestionDropdownOpen = false;
+
+  // Confirmation modal state
+  confirmationModalOpen = false;
+  confirmationModalTitle = '';
+  confirmationModalMessage = '';
+  confirmationAction: 'save' | 'delete' | null = null;
 
   private readonly destroy$ = new Subject<void>();
   private readonly availableQuestionsSubject = new BehaviorSubject<VisibilityQuestionOption[]>([]);
@@ -339,6 +346,39 @@ export class QuestionSettingsComponent implements OnChanges, OnInit, OnDestroy {
       return;
     }
 
+    // Show confirmation modal for save action
+    this.confirmationModalTitle = 'Save Changes';
+    this.confirmationModalMessage = 'Are you sure you want to save the changes to this question?';
+    this.confirmationAction = 'save';
+    this.confirmationModalOpen = true;
+  }
+
+  onDelete(): void {
+    // Show confirmation modal for delete action
+    this.confirmationModalTitle = 'Delete Question';
+    this.confirmationModalMessage = 'Are you sure you want to delete this question? This action cannot be undone.';
+    this.confirmationAction = 'delete';
+    this.confirmationModalOpen = true;
+  }
+
+  onConfirmationConfirm(): void {
+    if (this.confirmationAction === 'save') {
+      this.performSave();
+    } else if (this.confirmationAction === 'delete') {
+      this.performDelete();
+    }
+    this.confirmationModalOpen = false;
+    this.confirmationAction = null;
+  }
+
+  onConfirmationCancel(): void {
+    this.confirmationModalOpen = false;
+    this.confirmationAction = null;
+  }
+
+  private performSave(): void {
+    if (this.isSubmitting) return;
+
     this.isSubmitting = true;
     const formValue = this.form.getRawValue();
 
@@ -384,7 +424,7 @@ export class QuestionSettingsComponent implements OnChanges, OnInit, OnDestroy {
 });
   }
 
-  onDelete(): void {
+  private performDelete(): void {
     if (this.question) {
       this.deleteRequested.emit(this.question);
     }

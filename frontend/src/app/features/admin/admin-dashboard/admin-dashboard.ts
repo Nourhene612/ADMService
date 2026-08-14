@@ -53,6 +53,17 @@ export class AdminDashboardComponent implements OnInit {
   modalMessage = '';
   modalType: 'success' | 'warning' | 'info' = 'info';
 
+  // --- Confirmation Modal for actions (delete) ---
+  confirmationModalOpen = false;
+  confirmationModalTitle = '';
+  confirmationModalMessage = '';
+  confirmationModalType: 'warning' | 'info' = 'warning';
+  confirmationModalCancelLabel = 'Cancel';
+  confirmationModalConfirmLabel = 'Confirm';
+  confirmationModalConfirmColor: 'blue' | 'orange' = 'blue';
+  pendingQuestionAction: Question | null = null;
+  pendingActionType: 'delete' = 'delete';
+
   constructor(
     private questionService: QuestionService,
     private cdr: ChangeDetectorRef,
@@ -238,12 +249,16 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   onSettingsSaved(updated: Question): void {
-  this.applyQuestionUpdate(updated);   // reflet immédiat à l'écran
-  this.loadGroupedQuestions();         // resynchro silencieuse avec le serveur
-}
+    // The confirmation and save handling is already done in the question-settings component
+    // Here we just need to apply the update to the local state and reload
+    this.applyQuestionUpdate(updated);   // reflet immédiat à l'écran
+    this.loadGroupedQuestions();         // resynchro silencieuse avec le serveur
+  }
 
   onDeleteRequestedFromSettings(q: Question): void {
-    this.deleteQuestion(q);
+    // The confirmation and delete handling is already done in the question-settings component
+    // Here we just need to delete the question
+    this.performDeleteQuestion(q);
   }
 
   duplicateQuestion(q: Question): void {
@@ -259,6 +274,42 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   deleteQuestion(q: Question): void {
+    if (!q.uid) {
+      return;
+    }
+
+    // Show confirmation modal for delete
+    this.pendingQuestionAction = q;
+    this.pendingActionType = 'delete';
+    this.confirmationModalTitle = 'Delete Question';
+    this.confirmationModalMessage = 'Are you sure you want to delete this question? This action cannot be undone.';
+    this.confirmationModalType = 'warning';
+    this.confirmationModalCancelLabel = 'Cancel';
+    this.confirmationModalConfirmLabel = 'Delete';
+    this.confirmationModalConfirmColor = 'blue';
+    this.confirmationModalOpen = true;
+  }
+
+  onConfirmationConfirm(): void {
+    if (!this.pendingQuestionAction) {
+      this.confirmationModalOpen = false;
+      return;
+    }
+
+    if (this.pendingActionType === 'delete') {
+      this.performDeleteQuestion(this.pendingQuestionAction);
+    }
+
+    this.confirmationModalOpen = false;
+    this.pendingQuestionAction = null;
+  }
+
+  onConfirmationCancel(): void {
+    this.confirmationModalOpen = false;
+    this.pendingQuestionAction = null;
+  }
+
+  private performDeleteQuestion(q: Question): void {
     if (!q.uid) {
       return;
     }

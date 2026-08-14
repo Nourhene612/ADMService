@@ -12,7 +12,7 @@
 
   <div class="group-questions">
     <app-question-renderer
-      *ngFor="let question of questions"
+      *ngFor="let question of questions; trackBy: trackByQuestionUid"
       [question]="question"
     ></app-question-renderer>
   </div>

@@ -49,6 +49,7 @@ export class WizardStateService {
 
   private answersMap = new Map<string, LocalAnswerValue>();
   private dirtyQuestionUids = new Set<string>();
+  private hasUnsavedChangesSubject = new BehaviorSubject<boolean>(false);
 
   // ===== Observables exposés =====
   session$ = this.sessionSubject.asObservable();
@@ -57,6 +58,7 @@ export class WizardStateService {
   currentStepIndex$ = this.currentStepIndexSubject.asObservable();
   loading$ = this.loadingSubject.asObservable();
   error$ = this.errorSubject.asObservable();
+  hasUnsavedChanges$ = this.hasUnsavedChangesSubject.asObservable();
 
   // Reconstruit answers_by_question_ref à partir de answersMap (state local),
   // en respectant le même ordre de priorité que le backend
@@ -91,11 +93,59 @@ export class WizardStateService {
     }));
   }
 
+  private recalculateProgressLocally(): void {
+    const currentSession = this.sessionSubject.value;
+    const currentProgress = this.progressSubject.value;
+    
+    if (!currentSession || !currentProgress) {
+      return;
+    }
+
+    // Count visible questions
+    const visibleQuestions = this.questionsSubject.value.filter(q => q.is_visible);
+    const totalVisibleQuestions = visibleQuestions.length;
+
+    // Count answered visible questions (those with a non-empty response)
+    let answeredCount = 0;
+    for (const q of visibleQuestions) {
+      const answer = this.answersMap.get(q.uid);
+      if (answer) {
+        const hasResponse = 
+          (answer.response_string !== undefined && answer.response_string !== null && answer.response_string !== '') ||
+          (answer.response_number !== undefined && answer.response_number !== null) ||
+          (answer.response_boolean !== undefined && answer.response_boolean !== null) ||
+          (answer.response_list_json !== undefined && answer.response_list_json !== null && answer.response_list_json.length > 0);
+        if (hasResponse) {
+          answeredCount++;
+        }
+      }
+    }
+
+    // Calculate progress percentage
+    const progressPercentage = totalVisibleQuestions > 0 
+      ? Math.round((answeredCount / totalVisibleQuestions) * 100)
+      : 0;
+
+    // Update progress observable with local calculation
+    const updatedProgress: AdmAssessmentSessionProgress = {
+      ...currentProgress,
+      progress_percentage: progressPercentage,
+      answered_questions: answeredCount,
+      total_questions: totalVisibleQuestions,
+      remaining_questions: Math.max(totalVisibleQuestions - answeredCount, 0),
+    };
+
+    this.progressSubject.next(updatedProgress);
+  }
+
   private refreshVisibilityState(questionUid?: string, value?: LocalAnswerValue): void {
     const questions = this.questionsSubject.value;
     const visibleQuestions = this.applyVisibilityToQuestions(questions);
     this.questionsSubject.next(visibleQuestions);
     this.validationTriggerSubject.next(this.validationTriggerSubject.value + 1);
+
+    // Recalculate progress locally based on current answers
+    this.recalculateProgressLocally();
 
     if (questionUid !== undefined) {
       const answersByRef = this.buildAnswersByQuestionRef();
@@ -280,6 +330,10 @@ export class WizardStateService {
     return this.answersMap.get(questionUid);
   }
 
+  hasUnsavedChanges(): boolean {
+    return this.dirtyQuestionUids.size > 0;
+  }
+
   setAnswerValue(questionUid: string, value: LocalAnswerValue): void {
     if (!this.isSessionEditable()) {
       console.warn('Modification ignorée : session non modifiable');
@@ -288,7 +342,11 @@ export class WizardStateService {
     const existing = this.answersMap.get(questionUid);
     const updatedValue = { ...existing, ...value };
     this.answersMap.set(questionUid, updatedValue);
+    const wasClean = this.dirtyQuestionUids.size === 0;
     this.dirtyQuestionUids.add(questionUid);
+    if (wasClean) {
+      this.hasUnsavedChangesSubject.next(true);
+    }
     this.refreshVisibilityState(questionUid, updatedValue);
     console.log('DIRTY SET:', Array.from(this.dirtyQuestionUids));
   }
@@ -449,6 +507,7 @@ export class WizardStateService {
           if (value) value.answer_uid = updated.uid;
         }
         this.dirtyQuestionUids.clear();
+        this.hasUnsavedChangesSubject.next(false);
 
         this.loadQuestions(session!.uid);
         this.persistCurrentStep(session!.uid);
@@ -557,6 +616,7 @@ export class WizardStateService {
     this.validationTriggerSubject.next(0);
     this.answersMap.clear();
     this.dirtyQuestionUids.clear();
+    this.hasUnsavedChangesSubject.next(false);
     this.sessionRequestInFlight = false;
   }
 
