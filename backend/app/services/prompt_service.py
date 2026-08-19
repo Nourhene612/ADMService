@@ -12,39 +12,20 @@ import os
 from typing import List, Optional
 
 import google.generativeai as genai
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models.aipromts import AIPrompt
+from app.models.database import SessionLocal
 
 logger = logging.getLogger(__name__)
 
 
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 
-MODEL = os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-flash")
 MAX_SUGGESTIONS = 5
 
-
-SYSTEM_PROMPT = """
-Tu es une API d'autocomplétion pour un formulaire d'évaluation technique et d'architecture SI (ADM / Due-Diligence). Ton unique rôle est de compléter le texte saisi.
-
-ENTRÉES :
-1. Question : définit la catégorie attendue.
-2. Texte partiel : définit le préfixe obligatoire.
-
-RÈGLES :
-1. Chaque suggestion doit commencer par le texte partiel (casse ignorée).
-2. Chaque suggestion doit correspondre exactement au type demandé par la question.
-   - Pour une catégorie racine (langage, SGBD, protocole...), ne propose ni frameworks, bibliothèques, ORM, SDK, drivers ou extensions.
-   - Pour des outils d'entreprise, ne propose pas de logiciels grand public.
-3. Propose uniquement les produits directement utilisés pour répondre à la question. N'inclus pas les composants, modules, extensions ou outils spécialisés d'une même famille si le produit principal est déjà proposé.
-4. Utilise le nom officiel actuel du produit.
-
-FORMAT :
-- Réponds uniquement avec un objet JSON valide.
-- Maximum 5 suggestions, sans doublon, triées par pertinence.
-- Si aucune suggestion pertinente n'existe, renvoie {"suggestions":[]}.
-
-Réponse attendue :
-{"suggestions":["Suggestion 1","Suggestion 2"]}
-"""
+PROMPT_CAPABILITY = "adm_suggestions"
 
 def _build_user_message(question: str, partial_answer: str, category: Optional[str]) -> str:
     payload = {
@@ -144,6 +125,7 @@ def _parse_suggestions(raw_text: str) -> List[str]:
  
  
 def get_suggestions(
+    db: Session,
     question: str,
     partial_answer: str,
     category: Optional[str] = None,
@@ -155,29 +137,66 @@ def get_suggestions(
         question: la question complète du formulaire ADM.
         partial_answer: le texte déjà saisi par l'utilisateur.
         category: catégorie optionnelle de la question (ex. "cloud", "identité", "CI/CD").
+        db: session SQLAlchemy utilisée pour charger le prompt actif.
  
     Returns:
         Une liste de suggestions (chaînes), potentiellement vide en cas d'échec ou d'absence de correspondance fiable.
     """
     if not partial_answer or not partial_answer.strip():
         return []
+
+    prompt_config = db.execute(
+        select(AIPrompt)
+        .where(
+            AIPrompt.capability == PROMPT_CAPABILITY,
+            AIPrompt.status == "ACTIVE",
+            AIPrompt.is_active.is_(True),
+        )
+        .order_by(AIPrompt.version.desc())
+    ).scalars().first()
+
+    if prompt_config is None:
+        logger.error("Aucun prompt actif trouvé pour la capacité %s", PROMPT_CAPABILITY)
+        return []
+
+    if not prompt_config.provider_name or prompt_config.provider_name.lower() not in {
+        "google",
+        "gemini",
+    }:
+        logger.error(
+            "Fournisseur IA non supporté pour le prompt %s: %r",
+            prompt_config.prompt_key,
+            prompt_config.provider_name,
+        )
+        return []
+
+    if not prompt_config.model_name or not prompt_config.prompt:
+        logger.error("Configuration incomplète pour le prompt %s", prompt_config.prompt_key)
+        return []
  
     user_message = _build_user_message(question, partial_answer, category)
  
     try:
         model = genai.GenerativeModel(
-            model_name=MODEL,
-            system_instruction=SYSTEM_PROMPT,
+            model_name=prompt_config.model_name,
+            system_instruction=prompt_config.prompt,
         )
+        generation_config = {
+            "temperature": prompt_config.temperature,
+            "max_output_tokens": prompt_config.max_output_tokens,
+        }
+        if prompt_config.prompt_response_format:
+            generation_config["response_mime_type"] = (
+                "application/json"
+                if prompt_config.prompt_response_format.lower() == "json"
+                else prompt_config.prompt_response_format
+            )
+        if prompt_config.response_schema_json:
+            generation_config["response_schema"] = prompt_config.response_schema_json
+
         response = model.generate_content(
             user_message,
-            generation_config=genai.types.GenerationConfig(
-                temperature=0,
-                max_output_tokens=800,
-                
-                
-            ),
-        
+            generation_config=genai.types.GenerationConfig(**generation_config),
         )
     except Exception as exc:  # erreurs réseau, API, etc.
         logger.error("Échec de l'appel au modèle pour la complétion ADM: %s", exc)
@@ -253,18 +272,23 @@ if __name__ == "__main__":
         },
     ]
  
-    for index, test in enumerate(tests, start=1):
-        print("=" * 80)
-        print(f"Test {index}")
-        print(f"Question : {test['question']}")
-        print(f"Saisie    : {test['partial_answer']}")
- 
-        suggestions = get_suggestions(
-            question=test["question"],
-            partial_answer=test["partial_answer"],
-        )
- 
-        print("Suggestions :", suggestions)
+    db = SessionLocal()
+    try:
+        for index, test in enumerate(tests, start=1):
+            print("=" * 80)
+            print(f"Test {index}")
+            print(f"Question : {test['question']}")
+            print(f"Saisie    : {test['partial_answer']}")
+
+            suggestions = get_suggestions(
+                db=db,
+                question=test["question"],
+                partial_answer=test["partial_answer"],
+            )
+
+            print("Suggestions :", suggestions)
+    finally:
+        db.close()
  
     print("=" * 80)
  

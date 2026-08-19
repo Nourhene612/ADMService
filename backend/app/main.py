@@ -4,12 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.models.database import Base, engine
 from app.routes import admin , answer , customer , question , sessions , suggestion
+from app.seeds.question_seed import seed_adm_assessment_questions
 
 
 app = FastAPI(
     title="Vision ADM Assessment API",
     version="1.0.0"
 )
+
+
+@app.on_event("startup")
+def seed_questions_on_startup() -> None:
+    seed_adm_assessment_questions()
 
 # ----------------------
 # CORS (Angular / frontend)

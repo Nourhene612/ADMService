@@ -125,6 +125,7 @@ def get_question_suggestions(
 
     # Appelle le modèle pour obtenir les suggestions
     suggestions = prompt_service.get_suggestions(
+        db=db,
         question=question["question_text"],
         partial_answer=payload.partial_answer,
         category=question["section_key"],
